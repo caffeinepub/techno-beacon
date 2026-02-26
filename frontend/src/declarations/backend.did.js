@@ -10,7 +10,7 @@ import { IDL } from '@icp-sdk/core/candid';
 
 export const Result = IDL.Variant({
   'alreadyExists' : IDL.Null,
-  'eventNotFound' : IDL.Null,
+  'eventNotFound' : IDL.Text,
   'notFound' : IDL.Null,
   'success' : IDL.Null,
   'unauthorized' : IDL.Null,
@@ -82,7 +82,7 @@ export const idlInitArgs = [];
 export const idlFactory = ({ IDL }) => {
   const Result = IDL.Variant({
     'alreadyExists' : IDL.Null,
-    'eventNotFound' : IDL.Null,
+    'eventNotFound' : IDL.Text,
     'notFound' : IDL.Null,
     'success' : IDL.Null,
     'unauthorized' : IDL.Null,

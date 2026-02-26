@@ -1,81 +1,89 @@
-import React, { useMemo } from 'react';
-import { Radio, Music, MapPin, Calendar, ExternalLink } from 'lucide-react';
-import EventCard from '../components/EventCard';
-import LoginPrompt from '../components/LoginPrompt';
-import {
-  useGetTrackedArtistEvents,
-  useGetRadarSummary,
-  useRadarEvents,
-  useGetArtists,
-} from '../hooks/useQueries';
+import React from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import {
+  useGetTrackedArtists,
+  useGetTrackedArtistEvents,
+  useGetArtists,
+  useRadarEvents,
+} from '../hooks/useQueries';
+import { Event } from '../backend';
+import LoginPrompt from '../components/LoginPrompt';
+import { Calendar, MapPin, Radio, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Event } from '../backend';
+import { buildTicketSearchUrl } from '../utils/ticketSearch';
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="bg-card border border-border rounded-sm p-4 flex flex-col gap-1">
-      <span className="text-2xl font-bold font-mono text-neon-amber">{value}</span>
-      <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">{label}</span>
-    </div>
-  );
-}
-
-function formatDate(dateTime: bigint): string {
-  const ms = Number(dateTime) / 1_000_000;
-  return new Date(ms).toLocaleDateString('en-US', {
+function formatEventDate(dateTime: bigint): string {
+  const dateObj = new Date(Number(dateTime) / 1_000_000);
+  return dateObj.toLocaleDateString('en-US', {
     weekday: 'short',
-    year: 'numeric',
     month: 'short',
     day: 'numeric',
+    year: 'numeric',
   });
 }
 
-function formatTime(dateTime: bigint): string {
-  const ms = Number(dateTime) / 1_000_000;
-  return new Date(ms).toLocaleTimeString('en-US', {
+function formatEventTime(dateTime: bigint): string {
+  const dateObj = new Date(Number(dateTime) / 1_000_000);
+  return dateObj.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
   });
 }
 
 interface SavedEventRowProps {
   event: Event;
-  artistName: string;
+  artistName?: string;
 }
 
 function SavedEventRow({ event, artistName }: SavedEventRowProps) {
+  const nameForSearch = artistName ?? event.artistId;
+
   return (
-    <div className="bg-card border border-border rounded-sm p-4 pl-5 relative overflow-hidden hover:border-neon-amber/40 transition-colors">
-      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-neon-amber opacity-60" />
-      <div className="flex items-start justify-between gap-3 flex-wrap">
+    <div className="card-industrial p-4 flex flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-mono uppercase tracking-widest text-neon-amber mb-1 truncate">
-            {artistName}
-          </p>
-          <h4 className="text-sm font-semibold text-foreground leading-snug mb-2 line-clamp-2">
+          <h3 className="font-mono text-sm font-semibold text-foreground leading-tight line-clamp-2">
             {event.eventTitle}
-          </h4>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground font-mono">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 shrink-0" />
-              {event.venue} · {event.city}, {event.country}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 shrink-0" />
-              {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
-            </span>
-          </div>
+          </h3>
+          {artistName && (
+            <p className="text-xs text-amber font-mono mt-0.5">{artistName}</p>
+          )}
         </div>
+        <span className="text-xs font-mono px-2 py-0.5 rounded border border-amber/40 text-amber bg-amber/10 shrink-0">
+          📡 Saved
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+        <MapPin className="w-3 h-3 shrink-0 text-neon-green" />
+        <span className="truncate">
+          {event.venue} · {event.city}, {event.country}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+        <Calendar className="w-3 h-3 shrink-0 text-amber" />
+        <span>
+          {formatEventDate(event.dateTime)} · {formatEventTime(event.dateTime)}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 mt-1 flex-wrap">
         <a
-          href={event.eventUrl}
+          href={buildTicketSearchUrl('dice', nameForSearch)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-neon-amber/10 text-neon-amber border border-neon-amber/30 rounded-sm hover:bg-neon-amber/20 hover:border-neon-amber/60 transition-all duration-200 shrink-0"
+          className="text-xs font-mono px-2.5 py-1 rounded border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 transition-colors flex items-center gap-1"
         >
-          Tickets
-          <ExternalLink className="w-3 h-3" />
+          🎟 Dice
+        </a>
+        <a
+          href={buildTicketSearchUrl('songkick', nameForSearch)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-mono px-2.5 py-1 rounded border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 transition-colors flex items-center gap-1"
+        >
+          🎟 Songkick
         </a>
       </div>
     </div>
@@ -84,181 +92,194 @@ function SavedEventRow({ event, artistName }: SavedEventRowProps) {
 
 export default function MyRadarPage() {
   const { identity } = useInternetIdentity();
-  const { data: trackedEvents, isLoading: eventsLoading } = useGetTrackedArtistEvents();
-  const { data: summary, isLoading: summaryLoading } = useGetRadarSummary();
-  const { data: radarEvents = [], isLoading: radarEventsLoading } = useRadarEvents();
+  const isAuthenticated = !!identity;
+
+  const { data: trackedArtistIds = [] } = useGetTrackedArtists();
+  const { data: trackedEvents = [], isLoading: trackedEventsLoading } = useGetTrackedArtistEvents();
   const { data: artists = [] } = useGetArtists();
+  const {
+    data: radarEvents = [],
+    isLoading: radarEventsLoading,
+    isSuccess: radarEventsSuccess,
+  } = useRadarEvents();
 
-  // Build artist id → name map
-  const artistMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const a of artists) {
-      map[a.id] = a.name;
-    }
-    return map;
-  }, [artists]);
-
-  // Always call useMemo unconditionally (Rules of Hooks)
-  const sortedTrackedEvents = useMemo(() => {
-    if (!trackedEvents) return [];
-    return [...trackedEvents].sort((a, b) => Number(a.dateTime - b.dateTime));
-  }, [trackedEvents]);
-
-  const sortedRadarEvents = useMemo(() => {
-    return [...radarEvents].sort((a, b) => Number(a.dateTime) - Number(b.dateTime));
-  }, [radarEvents]);
-
-  if (!identity) {
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <LoginPrompt
-            title="Your Personal Radar"
-            message="Login to see upcoming events from artists you follow. Build your personal techno radar."
-          />
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <LoginPrompt
+          title="My Radar"
+          message="Login to track artists and save events to your personal radar."
+        />
       </div>
     );
   }
 
-  const artistCount = summary ? Number(summary[0]) : 0;
-  const eventCount = summary ? Number(summary[1]) : 0;
-
   const getArtistName = (artistId: string) =>
-    artistMap[artistId] ??
-    artistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    artists.find((a) => a.id === artistId)?.name ?? artistId;
+
+  // Sort saved events chronologically
+  const sortedRadarEvents = [...radarEvents].sort(
+    (a, b) => Number(a.dateTime) - Number(b.dateTime)
+  );
+
+  // Sort tracked artist events chronologically
+  const sortedTrackedEvents = [...trackedEvents].sort(
+    (a, b) => Number(a.dateTime) - Number(b.dateTime)
+  );
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <Radio className="w-5 h-5 text-neon-amber" />
-          <h1 className="text-lg font-bold font-mono uppercase tracking-widest text-foreground">
-            My Radar
-          </h1>
+      <main className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-10">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <Radio className="w-6 h-6 text-accent" />
+          <div>
+            <h1 className="font-mono text-2xl font-bold text-foreground tracking-tight">My Radar</h1>
+            <p className="text-sm text-muted-foreground font-mono mt-0.5">
+              Your saved events and tracked artists
+            </p>
+          </div>
         </div>
 
-        {/* Summary stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-          {summaryLoading ? (
-            <>
-              <div className="bg-card border border-border rounded-sm p-4">
-                <Skeleton className="h-8 w-12 mb-2 bg-secondary" />
-                <Skeleton className="h-3 w-24 bg-secondary" />
-              </div>
-              <div className="bg-card border border-border rounded-sm p-4">
-                <Skeleton className="h-8 w-12 mb-2 bg-secondary" />
-                <Skeleton className="h-3 w-24 bg-secondary" />
-              </div>
-            </>
-          ) : (
-            <>
-              <StatCard label="Artists Followed" value={artistCount} />
-              <StatCard label="Upcoming Events" value={eventCount} />
-              <StatCard label="Saved Events" value={sortedRadarEvents.length} />
-            </>
-          )}
-        </div>
-
-        {/* ── Saved Events section ─────────────────────────────────────────── */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-6">
-            <Radio className="w-5 h-5 text-neon-amber" />
-            <h2 className="text-lg font-bold font-mono uppercase tracking-widest text-foreground">
-              Saved Events
-            </h2>
-            {!radarEventsLoading && sortedRadarEvents.length > 0 && (
-              <span className="text-xs font-mono text-muted-foreground ml-auto">
-                {sortedRadarEvents.length} {sortedRadarEvents.length === 1 ? 'event' : 'events'}
+        {/* Saved Events Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="font-mono text-base font-semibold text-foreground">Saved Events</h2>
+            {radarEventsSuccess && (
+              <span className="text-xs font-mono px-2 py-0.5 rounded border border-border text-muted-foreground">
+                {sortedRadarEvents.length}
               </span>
             )}
           </div>
 
-          {radarEventsLoading && (
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-sm p-4 pl-5">
-                  <Skeleton className="h-3 w-24 mb-2 bg-secondary" />
-                  <Skeleton className="h-4 w-48 mb-3 bg-secondary" />
-                  <Skeleton className="h-3 w-40 bg-secondary" />
-                </div>
+          {radarEventsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-36 rounded" />
               ))}
             </div>
-          )}
-
-          {!radarEventsLoading && sortedRadarEvents.length === 0 && (
-            <div className="text-center py-10 border border-dashed border-border rounded-sm">
-              <Radio className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm font-mono mb-1">
-                No saved events yet.
-              </p>
-              <p className="text-muted-foreground/60 text-xs font-mono">
-                Tap <span className="text-neon-amber">📡 Add to Radar</span> on any event to save it here.
+          ) : sortedRadarEvents.length === 0 ? (
+            <div className="card-industrial p-6 text-center">
+              <p className="font-mono text-sm text-muted-foreground">
+                No saved events yet. Browse the{' '}
+                <a href="/" className="text-accent hover:underline">
+                  Discover page
+                </a>{' '}
+                and add events to your radar.
               </p>
             </div>
-          )}
-
-          {!radarEventsLoading && sortedRadarEvents.length > 0 && (
-            <div className="space-y-3">
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sortedRadarEvents.map((event, idx) => (
                 <SavedEventRow
-                  key={`${event.eventTitle}-${event.dateTime}-${idx}`}
+                  key={`${event.artistId}-${event.dateTime}-${idx}`}
                   event={event}
                   artistName={getArtistName(event.artistId)}
                 />
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* ── Tracked Artist Events section ────────────────────────────────── */}
-        <div>
-          <div className="flex items-center gap-3 mb-6">
-            <Music className="w-5 h-5 text-neon-amber" />
-            <h2 className="text-lg font-bold font-mono uppercase tracking-widest text-foreground">
-              Upcoming Events
-            </h2>
-            {!eventsLoading && sortedTrackedEvents.length > 0 && (
-              <span className="text-xs font-mono text-muted-foreground ml-auto">
-                {sortedTrackedEvents.length} {sortedTrackedEvents.length === 1 ? 'event' : 'events'}
-              </span>
-            )}
+        {/* Tracked Artists Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="font-mono text-base font-semibold text-foreground">Tracked Artists</h2>
+            <span className="text-xs font-mono px-2 py-0.5 rounded border border-border text-muted-foreground">
+              {trackedArtistIds.length}
+            </span>
           </div>
 
-          {eventsLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-card border border-border rounded-sm p-4 pl-5">
-                  <Skeleton className="h-3 w-24 mb-2 bg-secondary" />
-                  <Skeleton className="h-4 w-48 mb-3 bg-secondary" />
-                  <Skeleton className="h-3 w-40 mb-2 bg-secondary" />
-                  <Skeleton className="h-3 w-36 bg-secondary" />
-                </div>
+          {trackedArtistIds.length === 0 ? (
+            <div className="card-industrial p-6 text-center">
+              <p className="font-mono text-sm text-muted-foreground">
+                No tracked artists yet. Visit the{' '}
+                <a href="/artists" className="text-accent hover:underline">
+                  Artists page
+                </a>{' '}
+                to follow artists.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {trackedArtistIds.map((id) => (
+                <span
+                  key={id}
+                  className="text-xs font-mono px-3 py-1.5 rounded border border-border text-muted-foreground bg-card"
+                >
+                  {getArtistName(id)}
+                </span>
               ))}
             </div>
           )}
+        </section>
 
-          {!eventsLoading && sortedTrackedEvents.length === 0 && (
-            <div className="text-center py-16">
-              <Music className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-muted-foreground text-sm font-mono mb-2">
-                No upcoming events from your followed artists.
-              </p>
-              <p className="text-muted-foreground/60 text-xs font-mono">
-                Follow artists on the Artists page to see their events here.
-              </p>
+        {/* Tracked Artist Events Section */}
+        {trackedArtistIds.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="font-mono text-base font-semibold text-foreground">
+                Upcoming from Tracked Artists
+              </h2>
+              {!trackedEventsLoading && (
+                <span className="text-xs font-mono px-2 py-0.5 rounded border border-border text-muted-foreground">
+                  {sortedTrackedEvents.length}
+                </span>
+              )}
             </div>
-          )}
 
-          {!eventsLoading && sortedTrackedEvents.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedTrackedEvents.map((event, idx) => (
-                <EventCard key={`${event.artistId}-${event.dateTime}-${idx}`} event={event} />
-              ))}
-            </div>
-          )}
-        </div>
+            {trackedEventsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-28 rounded" />
+                ))}
+              </div>
+            ) : sortedTrackedEvents.length === 0 ? (
+              <div className="card-industrial p-6 text-center">
+                <p className="font-mono text-sm text-muted-foreground">
+                  No upcoming events from your tracked artists.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {sortedTrackedEvents.map((event, idx) => (
+                  <div key={`tracked-${event.artistId}-${event.dateTime}-${idx}`} className="card-industrial p-3 flex flex-col gap-2">
+                    <h3 className="font-mono text-sm font-semibold text-foreground leading-tight line-clamp-2">
+                      {event.eventTitle}
+                    </h3>
+                    <p className="text-xs text-accent font-mono">{getArtistName(event.artistId)}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                      <MapPin className="w-3 h-3 shrink-0 text-neon-green" />
+                      <span className="truncate">{event.city}, {event.country}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                      <Calendar className="w-3 h-3 shrink-0 text-amber" />
+                      <span>{formatEventDate(event.dateTime)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <a
+                        href={buildTicketSearchUrl('dice', getArtistName(event.artistId))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-mono px-2.5 py-1 rounded border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 transition-colors flex items-center gap-1"
+                      >
+                        🎟 Dice
+                      </a>
+                      <a
+                        href={buildTicketSearchUrl('songkick', getArtistName(event.artistId))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-mono px-2.5 py-1 rounded border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 transition-colors flex items-center gap-1"
+                      >
+                        🎟 Songkick
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </div>
   );

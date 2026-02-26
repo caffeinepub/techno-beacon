@@ -14,6 +14,22 @@ export interface Artist {
     genre: string;
 }
 export type Time = bigint;
+export type Result = {
+    __kind__: "alreadyExists";
+    alreadyExists: null;
+} | {
+    __kind__: "eventNotFound";
+    eventNotFound: string;
+} | {
+    __kind__: "notFound";
+    notFound: null;
+} | {
+    __kind__: "success";
+    success: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+};
 export interface UserProfile {
     name: string;
 }
@@ -26,13 +42,6 @@ export interface Event {
     sourceLabel: string;
     eventUrl: string;
     dateTime: Time;
-}
-export enum Result {
-    alreadyExists = "alreadyExists",
-    eventNotFound = "eventNotFound",
-    notFound = "notFound",
-    success = "success",
-    unauthorized = "unauthorized"
 }
 export enum UserRole {
     admin = "admin",

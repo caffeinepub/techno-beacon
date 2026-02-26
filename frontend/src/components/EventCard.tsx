@@ -1,194 +1,178 @@
 import React, { useState } from 'react';
-import { MapPin, Calendar, ExternalLink, Music, Plane, Radio } from 'lucide-react';
+import { Calendar, MapPin, Loader2, Radio } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAddEventToRadar, useRemoveEventFromRadar, useRadarEvents } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import type { Event } from '../backend';
 import SourceBadge from './SourceBadge';
 import TripPlannerModal from './TripPlannerModal';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useRadarEvents, useAddEventToRadar, useRemoveEventFromRadar } from '../hooks/useQueries';
+import { getBackendEventId } from '../lib/eventIdLookup';
+import { buildTicketSearchUrl } from '../utils/ticketSearch';
 
 interface EventCardProps {
   event: Event;
-  eventId?: string;
-  onArtistClick?: (artistId: string) => void;
+  artistName: string;
 }
 
-function formatDate(dateTime: bigint): string {
-  const ms = Number(dateTime) / 1_000_000;
-  const date = new Date(ms);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
-function formatTime(dateTime: bigint): string {
-  const ms = Number(dateTime) / 1_000_000;
-  const date = new Date(ms);
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
-function artistIdToName(artistId: string): string {
-  return artistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-// Derive a stable event ID from event fields (matches backend seed data keys)
-function deriveEventId(event: Event): string {
-  // Use artistId + a slug of the title as a best-effort key
-  // The backend uses keys like "richie_berlin_berghain", "dave_paris_off_the_grid", etc.
-  // We pass the eventId prop when available; otherwise fall back to title-based slug
-  const titleSlug = event.eventTitle
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 40);
-  return `${event.artistId}_${titleSlug}`;
-}
-
-export default function EventCard({ event, eventId, onArtistClick }: EventCardProps) {
-  const [showTripPlanner, setShowTripPlanner] = useState(false);
+export default function EventCard({ event, artistName }: EventCardProps) {
   const { identity } = useInternetIdentity();
-  const { data: radarEvents = [] } = useRadarEvents();
+  const { data: radarEvents } = useRadarEvents();
   const addToRadar = useAddEventToRadar();
   const removeFromRadar = useRemoveEventFromRadar();
+  const [tripPlannerOpen, setTripPlannerOpen] = useState(false);
 
-  const isAuthenticated = !!identity;
+  const backendEventId = getBackendEventId(event.artistId, event.dateTime);
 
-  // Check if this event is already in the radar by matching title + dateTime
-  const isOnRadar = radarEvents.some(
-    (re) => re.eventTitle === event.eventTitle && re.dateTime === event.dateTime
-  );
+  // Check if this event is on radar by matching on artistId + dateTime
+  const isOnRadar = radarEvents?.some(
+    (e) => e.artistId === event.artistId && e.dateTime === event.dateTime
+  ) ?? false;
 
-  const handleRadarToggle = async () => {
-    if (!isAuthenticated) {
-      toast.error('Log in to save events to your Radar');
+  const formatDate = (dateTime: bigint) => {
+    const ms = Number(dateTime) / 1_000_000;
+    return new Date(ms).toLocaleDateString('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const formatTime = (dateTime: bigint) => {
+    const ms = Number(dateTime) / 1_000_000;
+    return new Date(ms).toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const handleToggleRadar = async () => {
+    if (!identity) {
+      toast.error('Login required', {
+        description: 'Please log in to save events to your radar.',
+      });
       return;
     }
 
-    // We need the event ID to call the backend. Use the passed eventId prop or derive it.
-    const id = eventId ?? deriveEventId(event);
-
-    if (isOnRadar) {
-      removeFromRadar.mutate(id, {
-        onSuccess: () => toast.success('Removed from Radar'),
-        onError: () => toast.error('Failed to remove from Radar'),
+    if (!backendEventId) {
+      console.error('[EventCard] Could not resolve backend event ID for event:', {
+        artistId: event.artistId,
+        dateTime: event.dateTime.toString(),
+        eventTitle: event.eventTitle,
       });
-    } else {
-      addToRadar.mutate(id, {
-        onSuccess: () => toast.success('📡 Added to Radar!'),
-        onError: () => toast.error('Failed to add to Radar'),
+      toast.error('Could not save event', {
+        description: 'This event could not be identified. Please try again.',
+      });
+      return;
+    }
+
+    try {
+      if (isOnRadar) {
+        await removeFromRadar.mutateAsync(backendEventId);
+        toast.success('Removed from Radar', {
+          description: `${event.eventTitle} removed from your radar.`,
+        });
+      } else {
+        await addToRadar.mutateAsync(backendEventId);
+        toast.success('Added to Radar', {
+          description: `${event.eventTitle} saved to your radar.`,
+        });
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('[EventCard] Radar toggle error:', error);
+      const isNotFound = error.message?.toLowerCase().includes('not found');
+      toast.error('Could not save event', {
+        description: isNotFound
+          ? 'Event not found — it may have been removed. Please refresh and try again.'
+          : 'Something went wrong. Please try again.',
       });
     }
   };
 
-  const radarPending = addToRadar.isPending || removeFromRadar.isPending;
+  const isLoading = addToRadar.isPending || removeFromRadar.isPending;
 
   return (
-    <>
-      <article className="group relative bg-card border border-border rounded-sm card-hover overflow-hidden">
-        {/* Neon accent line on left */}
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-neon-amber opacity-60 group-hover:opacity-100 transition-opacity" />
-
-        <div className="p-4 pl-5">
-          {/* Header row */}
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Music className="w-3 h-3 text-neon-amber shrink-0" />
-                {onArtistClick ? (
-                  <button
-                    className="text-xs font-mono uppercase tracking-widest text-neon-amber truncate hover:underline cursor-pointer"
-                    onClick={() => onArtistClick(event.artistId)}
-                    aria-label={`View ${event.artistId} events`}
-                  >
-                    {artistIdToName(event.artistId)}
-                  </button>
-                ) : (
-                  <span className="text-xs font-mono uppercase tracking-widest text-neon-amber truncate">
-                    {artistIdToName(event.artistId)}
-                  </span>
-                )}
-              </div>
-              <h3 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-                {event.eventTitle}
-              </h3>
-            </div>
-            <SourceBadge source={event.sourceLabel} className="shrink-0 mt-0.5" />
-          </div>
-
-          {/* Venue & Location */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground truncate">
-              {event.venue} · {event.city}, {event.country}
-            </span>
-          </div>
-
-          {/* Date & Time */}
-          <div className="flex items-center gap-1.5 mb-4">
-            <Calendar className="w-3 h-3 text-muted-foreground shrink-0" />
-            <span className="text-xs font-mono text-muted-foreground">
-              {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
-            </span>
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              {/* Plan Trip button */}
-              <button
-                onClick={() => setShowTripPlanner(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-neon-green/10 text-neon-green border border-neon-green/30 rounded-sm hover:bg-neon-green/20 hover:border-neon-green/60 transition-all duration-200"
-                aria-label="Plan trip to this event"
-              >
-                <Plane className="w-3 h-3" />
-                Plan Trip
-              </button>
-
-              {/* Add to Radar button */}
-              <button
-                onClick={handleRadarToggle}
-                disabled={radarPending}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-sm transition-all duration-200 disabled:opacity-50 ${
-                  isOnRadar
-                    ? 'bg-neon-amber/20 text-neon-amber border-neon-amber hover:bg-neon-amber/30'
-                    : 'bg-neon-amber/5 text-neon-amber/70 border-neon-amber/30 hover:bg-neon-amber/15 hover:text-neon-amber hover:border-neon-amber/60'
-                }`}
-                aria-label={isOnRadar ? 'Remove from Radar' : 'Add to Radar'}
-              >
-                <Radio className="w-3 h-3" />
-                {isOnRadar ? 'On Radar' : 'Add to Radar'}
-              </button>
-            </div>
-
-            <a
-              href={event.eventUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-neon-amber/10 text-neon-amber border border-neon-amber/30 rounded-sm hover:bg-neon-amber/20 hover:border-neon-amber/60 transition-all duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Tickets
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
+    <div className="card-industrial p-4 flex flex-col gap-3 group">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-mono text-sm font-semibold text-foreground leading-tight line-clamp-2">
+            {event.eventTitle}
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 font-mono">{artistName}</p>
         </div>
-      </article>
+        <SourceBadge source={event.sourceLabel} />
+      </div>
 
-      {/* Trip Planner Modal */}
-      {showTripPlanner && (
+      {/* Details */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Calendar className="w-3.5 h-3.5 shrink-0 text-accent" />
+          <span className="font-mono">
+            {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <MapPin className="w-3.5 h-3.5 shrink-0 text-accent" />
+          <span className="font-mono truncate">
+            {event.venue !== 'TBA' ? `${event.venue}, ` : ''}{event.city}, {event.country}
+          </span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 mt-auto pt-1 flex-wrap">
+        <button
+          onClick={handleToggleRadar}
+          disabled={isLoading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded transition-all ${
+            isOnRadar
+              ? 'bg-accent text-accent-foreground hover:bg-accent/80'
+              : 'border border-border text-muted-foreground hover:border-accent hover:text-accent'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {isLoading ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Radio className="w-3.5 h-3.5" />
+          )}
+          {isOnRadar ? '📡 On Radar' : 'Add to Radar'}
+        </button>
+
+        <button
+          onClick={() => setTripPlannerOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium border border-border text-muted-foreground hover:border-accent hover:text-accent rounded transition-all"
+        >
+          ✈ Plan Trip
+        </button>
+
+        <a
+          href={buildTicketSearchUrl('dice', artistName)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
+        >
+          🎟 Dice
+        </a>
+
+        <a
+          href={buildTicketSearchUrl('songkick', artistName)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
+        >
+          🎟 Songkick
+        </a>
+      </div>
+
+      {tripPlannerOpen && (
         <TripPlannerModal
           event={event}
-          artistName={artistIdToName(event.artistId)}
-          onClose={() => setShowTripPlanner(false)}
+          artistName={artistName}
+          onClose={() => setTripPlannerOpen(false)}
         />
       )}
-    </>
+    </div>
   );
 }

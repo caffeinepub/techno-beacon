@@ -1,9 +1,33 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { Artist, Event, UserProfile } from '../backend';
+import type { Event, Artist, UserProfile } from '../backend';
 
-// ── Public read hooks (no auth required) ──────────────────────────────────────
+export function useGetAllEvents() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Event[]>({
+    queryKey: ['events'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllEvents();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetEventsByArtist(artistId: string) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Event[]>({
+    queryKey: ['events', 'artist', artistId],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getEventsByArtist(artistId);
+    },
+    enabled: !!actor && !isFetching && !!artistId,
+  });
+}
 
 export function useGetArtists() {
   const { actor, isFetching } = useActor();
@@ -11,88 +35,25 @@ export function useGetArtists() {
   return useQuery<Artist[]>({
     queryKey: ['artists'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not ready');
-      const result = await actor.getArtists();
-      if (!Array.isArray(result)) {
-        console.error('[useGetArtists] Unexpected response from getArtists:', result);
-        return [];
-      }
-      if (result.length === 0) {
-        console.warn('[useGetArtists] getArtists returned an empty array — seed data may be missing.');
-      }
-      return result;
+      if (!actor) return [];
+      return actor.getArtists();
     },
     enabled: !!actor && !isFetching,
-    staleTime: 1000 * 30, // 30 seconds — short enough to pick up fresh data after upgrades
-    retry: 3,
   });
 }
 
-export function useGetAllEvents() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Event[]>({
-    queryKey: ['allEvents'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not ready');
-      const result = await actor.getAllEvents();
-      return Array.isArray(result) ? result : [];
-    },
-    enabled: !!actor && !isFetching,
-    staleTime: 1000 * 30,
-    retry: 3,
-  });
-}
-
-export function useGetEventsByArtist(artistId: string | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Event[]>({
-    queryKey: ['eventsByArtist', artistId],
-    queryFn: async () => {
-      if (!actor || !artistId) return [];
-      const result = await actor.getEventsByArtist(artistId);
-      return Array.isArray(result) ? result : [];
-    },
-    enabled: !!actor && !isFetching && !!artistId,
-    staleTime: 1000 * 30,
-    retry: 3,
-  });
-}
-
-export function useGetAllEventsByArtist(artistId: string | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Event[]>({
-    queryKey: ['allEventsByArtist', artistId],
-    queryFn: async () => {
-      if (!actor || !artistId) return [];
-      const result = await actor.getEventsByArtist(artistId);
-      return Array.isArray(result) ? result : [];
-    },
-    enabled: !!actor && !isFetching && !!artistId,
-    staleTime: 1000 * 30,
-    retry: 3,
-  });
-}
-
-export function useGetArtist(artistId: string | null) {
+export function useGetArtist(artistId: string) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Artist | null>({
     queryKey: ['artist', artistId],
     queryFn: async () => {
-      if (!actor || !artistId) return null;
-      const result = await actor.getArtist(artistId);
-      return result ?? null;
+      if (!actor) return null;
+      return actor.getArtist(artistId);
     },
     enabled: !!actor && !isFetching && !!artistId,
-    staleTime: 1000 * 30,
-    retry: 3,
   });
 }
-
-// ── Auth-required hooks ────────────────────────────────────────────────────────
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -111,7 +72,7 @@ export function useGetCallerUserProfile() {
   return {
     ...query,
     isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && !!identity && query.isFetched,
+    isFetched: !!actor && query.isFetched,
   };
 }
 
@@ -130,20 +91,6 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-export function useGetTrackedArtists() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<string[]>({
-    queryKey: ['trackedArtists', identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      if (!actor || !identity) return [];
-      return actor.getTrackedArtists(identity.getPrincipal());
-    },
-    enabled: !!actor && !isFetching && !!identity,
-  });
-}
-
 export function useToggleTrackedArtist() {
   const { actor } = useActor();
   const { identity } = useInternetIdentity();
@@ -151,14 +98,31 @@ export function useToggleTrackedArtist() {
 
   return useMutation({
     mutationFn: async (artistId: string) => {
-      if (!actor || !identity) throw new Error('Must be logged in to track artists');
+      if (!actor) throw new Error('Actor not available');
       return actor.toggleTrackedArtist(artistId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trackedArtists'] });
-      queryClient.invalidateQueries({ queryKey: ['trackedArtistEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['radarSummary'] });
+      if (identity) {
+        queryClient.invalidateQueries({ queryKey: ['trackedArtists'] });
+        queryClient.invalidateQueries({ queryKey: ['trackedArtistEvents'] });
+        queryClient.invalidateQueries({ queryKey: ['radarSummary'] });
+      }
     },
+  });
+}
+
+export function useGetTrackedArtists() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<string[]>({
+    queryKey: ['trackedArtists'],
+    queryFn: async () => {
+      if (!actor || !identity) return [];
+      const principal = identity.getPrincipal();
+      return actor.getTrackedArtists(principal);
+    },
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
@@ -167,24 +131,11 @@ export function useGetTrackedArtistEvents() {
   const { identity } = useInternetIdentity();
 
   return useQuery<Event[]>({
-    queryKey: ['trackedArtistEvents', identity?.getPrincipal().toString()],
+    queryKey: ['trackedArtistEvents'],
     queryFn: async () => {
       if (!actor || !identity) return [];
-      return actor.getTrackedArtistEvents(identity.getPrincipal());
-    },
-    enabled: !!actor && !isFetching && !!identity,
-  });
-}
-
-export function useGetRadarSummary() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<[bigint, bigint]>({
-    queryKey: ['radarSummary', identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      if (!actor || !identity) return [BigInt(0), BigInt(0)];
-      return actor.getMyRadarSummary(identity.getPrincipal());
+      const principal = identity.getPrincipal();
+      return actor.getTrackedArtistEvents(principal);
     },
     enabled: !!actor && !isFetching && !!identity,
   });
@@ -195,25 +146,36 @@ export function useRadarEvents() {
   const { identity } = useInternetIdentity();
 
   return useQuery<Event[]>({
-    queryKey: ['radarEvents', identity?.getPrincipal().toString()],
+    queryKey: ['radarEvents'],
     queryFn: async () => {
       if (!actor || !identity) return [];
       return actor.getRadarEvents();
     },
     enabled: !!actor && !isFetching && !!identity,
-    staleTime: 1000 * 30,
+    staleTime: 0,
   });
 }
 
 export function useAddEventToRadar() {
   const { actor } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (eventId: string) => {
-      if (!actor || !identity) throw new Error('Must be logged in to save events to radar');
-      return actor.addEventToRadar(eventId);
+      if (!actor) throw new Error('Actor not available');
+      const result = await actor.addEventToRadar(eventId);
+      console.log('[addEventToRadar] result:', result);
+
+      if (result.__kind__ === 'eventNotFound') {
+        console.error('[addEventToRadar] Event not found in backend:', result.eventNotFound);
+        throw new Error(`Event not found: ${result.eventNotFound}`);
+      }
+      if (result.__kind__ === 'unauthorized') {
+        console.error('[addEventToRadar] Unauthorized');
+        throw new Error('Unauthorized: Please log in to save events to your radar.');
+      }
+      // alreadyExists is treated as success (idempotent)
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['radarEvents'] });
@@ -223,17 +185,38 @@ export function useAddEventToRadar() {
 
 export function useRemoveEventFromRadar() {
   const { actor } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (eventId: string) => {
-      if (!actor || !identity) throw new Error('Must be logged in to remove events from radar');
-      return actor.removeEventFromRadar(eventId);
+      if (!actor) throw new Error('Actor not available');
+      const result = await actor.removeEventFromRadar(eventId);
+      console.log('[removeEventFromRadar] result:', result);
+
+      if (result.__kind__ === 'unauthorized') {
+        console.error('[removeEventFromRadar] Unauthorized');
+        throw new Error('Unauthorized: Please log in to manage your radar.');
+      }
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['radarEvents'] });
     },
+  });
+}
+
+export function useGetMyRadarSummary() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<[bigint, bigint]>({
+    queryKey: ['radarSummary'],
+    queryFn: async () => {
+      if (!actor || !identity) return [BigInt(0), BigInt(0)];
+      const principal = identity.getPrincipal();
+      return actor.getMyRadarSummary(principal);
+    },
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
@@ -247,10 +230,8 @@ export function useInitializeSeedData() {
       return actor.initializeSeedData();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['artists'] });
-      queryClient.invalidateQueries({ queryKey: ['allEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['eventsByArtist'] });
-      queryClient.invalidateQueries({ queryKey: ['allEventsByArtist'] });
     },
   });
 }

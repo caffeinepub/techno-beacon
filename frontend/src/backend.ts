@@ -96,6 +96,22 @@ export interface Artist {
     genre: string;
 }
 export type Time = bigint;
+export type Result = {
+    __kind__: "alreadyExists";
+    alreadyExists: null;
+} | {
+    __kind__: "eventNotFound";
+    eventNotFound: string;
+} | {
+    __kind__: "notFound";
+    notFound: null;
+} | {
+    __kind__: "success";
+    success: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+};
 export interface UserProfile {
     name: string;
 }
@@ -108,13 +124,6 @@ export interface Event {
     sourceLabel: string;
     eventUrl: string;
     dateTime: Time;
-}
-export enum Result {
-    alreadyExists = "alreadyExists",
-    eventNotFound = "eventNotFound",
-    notFound = "notFound",
-    success = "success",
-    unauthorized = "unauthorized"
 }
 export enum UserRole {
     admin = "admin",
@@ -433,15 +442,45 @@ function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     alreadyExists: null;
 } | {
-    eventNotFound: null;
+    eventNotFound: string;
 } | {
     notFound: null;
 } | {
     success: null;
 } | {
     unauthorized: null;
-}): Result {
-    return "alreadyExists" in value ? Result.alreadyExists : "eventNotFound" in value ? Result.eventNotFound : "notFound" in value ? Result.notFound : "success" in value ? Result.success : "unauthorized" in value ? Result.unauthorized : value;
+}): {
+    __kind__: "alreadyExists";
+    alreadyExists: null;
+} | {
+    __kind__: "eventNotFound";
+    eventNotFound: string;
+} | {
+    __kind__: "notFound";
+    notFound: null;
+} | {
+    __kind__: "success";
+    success: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+} {
+    return "alreadyExists" in value ? {
+        __kind__: "alreadyExists",
+        alreadyExists: value.alreadyExists
+    } : "eventNotFound" in value ? {
+        __kind__: "eventNotFound",
+        eventNotFound: value.eventNotFound
+    } : "notFound" in value ? {
+        __kind__: "notFound",
+        notFound: value.notFound
+    } : "success" in value ? {
+        __kind__: "success",
+        success: value.success
+    } : "unauthorized" in value ? {
+        __kind__: "unauthorized",
+        unauthorized: value.unauthorized
+    } : value;
 }
 function from_candid_variant_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;

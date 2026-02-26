@@ -1,75 +1,61 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add 'Add to Radar' button for events (Discover & ArtistEventPopup → My Radar page)",
+  "title": "Restore ticket search buttons (Dice.fm & Songkick) on all event cards and remove ra.co links",
   "requirements": [
     {
-      "id": "REQ-58",
-      "summary": "Add React Query hooks for radar event operations: useRadarEvents (fetch), useAddEventToRadar (mutation), and useRemoveEventFromRadar (mutation), all requiring authenticated actor and invalidating cache on success",
+      "id": "REQ-67",
+      "summary": "Restore Dice.fm and Songkick ticket search buttons on EventCard component and remove ra.co links",
       "acceptanceCriteria": [
-        "`useRadarEvents` fetches saved events from the backend using the authenticated actor.",
-        "`useAddEventToRadar` mutation calls `addEventToRadar` with the correct event ID and invalidates the `radarEvents` cache on success.",
-        "`useRemoveEventFromRadar` mutation calls `removeEventFromRadar` with the correct event ID and invalidates the `radarEvents` cache on success.",
-        "None of the hooks attempt to call the backend when no authenticated identity is present."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add three new React Query hooks in the auth-required section: `useRadarEvents()` returns a query that calls `actor.getRadarEvents()` with query key `['radarEvents']`, enabled only when actor exists. `useAddEventToRadar()` returns a mutation that calls `actor.addEventToRadar(eventId)` and on success invalidates the `['radarEvents']` query. `useRemoveEventFromRadar()` returns a mutation that calls `actor.removeEventFromRadar(eventId)` and on success invalidates the `['radarEvents']` query. Follow the existing pattern in the file for authenticated hooks (check actor availability, use proper error handling, return typed results)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-59",
-      "summary": "Add a compact '📡 Add to Radar' / '📡 On Radar' toggle button to EventCard that calls add/remove mutations with toast feedback, authentication gating for unauthenticated users, and active state styling when event is saved",
-      "acceptanceCriteria": [
-        "An '📡 Add to Radar' button appears on every event card on the Discover page.",
-        "Authenticated users can click the button to save an event; a success toast appears.",
-        "If the event is already in the user's radar, the button displays '📡 On Radar' in an active state and clicking it removes the event.",
-        "Unauthenticated users see a login prompt toast when clicking the button; no backend call is made.",
-        "Button styling matches the existing dark techno theme and is visually consistent with the Plan Trip button."
+        "Each event card on the Discover page shows two side-by-side ticket buttons: '🎟 Dice' and '🎟 Songkick'.",
+        "The Dice.fm button links to `https://dice.fm/search?q={encodedArtistName}` and opens in a new tab.",
+        "The Songkick button links to `https://www.songkick.com/search?query={encodedArtistName}` and opens in a new tab.",
+        "No generic 'https://ra.co' or 'https://ra.ca' link appears on any event card.",
+        "Ticket buttons are styled with neon amber accent and are visually consistent with the existing Plan Trip and Add to Radar buttons."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/EventCard.tsx",
           "operation": "modify",
-          "description": "Add a radar toggle button next to the existing 'Plan Trip' button. Import `useAddEventToRadar`, `useRemoveEventFromRadar`, and `useRadarEvents` from hooks/useQueries, plus `useInternetIdentity` and `toast` from sonner. Use `useRadarEvents` to determine if the current event is in the radar (check if event.eventTitle + event.dateTime matches any saved event). If unauthenticated, clicking shows a toast 'Log in to save events to your Radar' and returns early. If authenticated and event not saved, button shows '📡 Add to Radar' and clicking calls `addEventToRadar.mutate()` with event ID (use eventTitle as ID if no explicit ID field exists), then shows toast 'Added to Radar'. If event is saved, button shows '📡 On Radar' with active/filled state (bg-amber-400/20 border-amber-400) and clicking calls `removeEventFromRadar.mutate()` with toast 'Removed from Radar'. Style button with compact size, same visual weight as Plan Trip button, using neon amber accent colors from the theme."
+          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') using buildTicketSearchUrl utility to generate search URLs based on artist name. Remove any generic ra.co or ra.ca links. Style buttons with neon amber accent (from existing theme tokens) to match Plan Trip and Add to Radar buttons. Ensure both buttons open in new tabs with target='_blank' and rel='noopener noreferrer'."
+        },
+        {
+          "path": "frontend/src/utils/ticketSearch.ts",
+          "operation": "create",
+          "description": "Create buildTicketSearchUrl utility function that takes platform ('dice' | 'songkick') and artistName as parameters, returns properly encoded search URLs: Dice.fm uses https://dice.fm/search?q={encoded}, Songkick uses https://www.songkick.com/search?query={encoded}. Use encodeURIComponent for artist name encoding."
         }
       ]
     },
     {
-      "id": "REQ-60",
-      "summary": "Add the same '📡 Add to Radar' / '📡 On Radar' toggle button to each event row in ArtistEventPopup with identical authentication gating, toast notifications, and styling as EventCard",
+      "id": "REQ-68",
+      "summary": "Restore Dice.fm and Songkick ticket search buttons in ArtistEventPopup component and remove ra.co links",
       "acceptanceCriteria": [
-        "Each event row in the ArtistEventPopup includes an '📡 Add to Radar' / '📡 On Radar' toggle button.",
-        "Button behaviour, authentication gating, and toast messages are identical to those in EventCard.",
-        "The popup layout is not broken by the addition of the button."
+        "Each event row in ArtistEventPopup shows two side-by-side ticket buttons: '🎟 Dice' and '🎟 Songkick'.",
+        "The Dice.fm button links to `https://dice.fm/search?q={encodedArtistName}` and opens in a new tab.",
+        "The Songkick button links to `https://www.songkick.com/search?query={encodedArtistName}` and opens in a new tab.",
+        "No generic 'https://ra.co' or 'https://ra.ca' link appears in any event row in the popup."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ArtistEventPopup.tsx",
           "operation": "modify",
-          "description": "Add the same radar toggle button logic as described in REQ-59 to each event row in the popup. Import the same hooks (`useAddEventToRadar`, `useRemoveEventFromRadar`, `useRadarEvents`, `useInternetIdentity`, toast). Apply identical authentication checks, toast messages, active/inactive state logic, and styling. Ensure the button fits naturally within the existing event row layout (consider placing it inline with the 'Plan Trip' trigger or in a button group). Maintain consistent spacing and alignment with the existing popup design."
+          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') to each event row in the popup modal using the buildTicketSearchUrl utility from frontend/src/utils/ticketSearch.ts. Remove any generic ra.co or ra.ca links. Style buttons consistently with the dark techno theme using neon amber accent. Ensure both buttons open in new tabs with appropriate security attributes."
         }
       ]
     },
     {
-      "id": "REQ-61",
-      "summary": "Update MyRadarPage to display a 'Saved Events' section sourced from useRadarEvents, showing events sorted chronologically with event details and ticket links, plus an empty state prompt, while keeping existing tracked-artist section unchanged",
+      "id": "REQ-69",
+      "summary": "Restore Dice.fm and Songkick ticket search buttons on MyRadarPage saved events and remove ra.co links",
       "acceptanceCriteria": [
-        "My Radar page shows a 'Saved Events' section populated from `useRadarEvents`.",
-        "Events are sorted chronologically.",
-        "Each saved event row shows event title, artist name, venue, city, date/time, and ticket links.",
-        "Empty state shows an appropriate prompt when no events are saved.",
-        "The existing tracked-artist events section is unaffected.",
-        "The page still requires authentication; unauthenticated users see the existing login prompt."
+        "Each saved event row on My Radar shows '🎟 Dice' and '🎟 Songkick' ticket buttons.",
+        "Both buttons use `buildTicketSearchUrl` with the event's artist name and open in a new tab.",
+        "No generic 'https://ra.co' or 'https://ra.ca' link appears on the Radar page."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/MyRadarPage.tsx",
           "operation": "modify",
-          "description": "Import `useRadarEvents` from hooks/useQueries. After the existing summary stats section and before or after the tracked-artist events section, add a new 'Saved Events' section. Call `useRadarEvents()` and display loading/error states. Sort the returned events by `dateTime` (ascending). For each event, render a row showing eventTitle, artistId (resolve to artist name using getArtist or a local map), venue, city, formatted date/time, and the same Dice/Songkick ticket-search buttons used in EventCard or DiscoverPage. If the saved events array is empty, show a centered prompt: 'No saved events yet — tap 📡 Add to Radar on any event to save it here.' Keep the existing 'Tracked Artists' section and its event list unchanged. Ensure the page layout remains clean and the two sections are visually distinct (use section headings and spacing)."
+          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') to each saved event row in the 'Saved Events' section using the buildTicketSearchUrl utility from frontend/src/utils/ticketSearch.ts. Remove any generic ra.co or ra.ca links from event rows. Style buttons with neon amber accent to match other ticket buttons across the app. Ensure both buttons open in new tabs."
         }
       ]
     }

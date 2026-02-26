@@ -27,7 +27,7 @@ export interface Event {
   'dateTime' : Time,
 }
 export type Result = { 'alreadyExists' : null } |
-  { 'eventNotFound' : null } |
+  { 'eventNotFound' : string } |
   { 'notFound' : null } |
   { 'success' : null } |
   { 'unauthorized' : null };

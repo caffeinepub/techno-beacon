@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useGetArtists, useGetAllEvents } from '../hooks/useQueries';
+import React, { useState, useEffect } from 'react';
+import { useGetArtists, useGetAllEvents, useGetTrackedArtists } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import EventCard from '../components/EventCard';
-import EventFilters from '../components/EventFilters';
+import EventFilters, { FilterState } from '../components/EventFilters';
 import ArtistEventPopup from '../components/ArtistEventPopup';
 import AdminInitButton from '../components/AdminInitButton';
-import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DiscoverPage() {
   const { identity } = useInternetIdentity();
@@ -15,7 +15,6 @@ export default function DiscoverPage() {
     data: artists = [],
     isLoading: artistsLoading,
     isError: artistsError,
-    error: artistsErrorObj,
     refetch: refetchArtists,
   } = useGetArtists();
 
@@ -28,7 +27,7 @@ export default function DiscoverPage() {
   } = useGetAllEvents();
 
   const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     artistName: '',
     city: '',
     dateFrom: '',
@@ -38,49 +37,44 @@ export default function DiscoverPage() {
   const isLoading = artistsLoading || eventsLoading;
   const hasError = artistsError || eventsError;
 
-  // Log full errors to console whenever they change
-  useEffect(() => {
-    if (artistsError && artistsErrorObj) {
-      console.error('[DiscoverPage] Failed to load artists:', artistsErrorObj);
-    }
-  }, [artistsError, artistsErrorObj]);
-
   useEffect(() => {
     if (eventsError && eventsErrorObj) {
       console.error('[DiscoverPage] Failed to load events:', eventsErrorObj);
     }
   }, [eventsError, eventsErrorObj]);
 
-  const filteredEvents = useMemo(() => {
-    return allEvents.filter((event) => {
+  const handleRetry = () => {
+    refetchArtists();
+    refetchEvents();
+  };
+
+  const filteredEvents = allEvents.filter((event) => {
+    if (selectedArtistId && event.artistId !== selectedArtistId) return false;
+
+    if (filters.artistName) {
       const artist = artists.find((a) => a.id === event.artistId);
       const artistName = artist?.name ?? event.artistId;
+      if (!artistName.toLowerCase().includes(filters.artistName.toLowerCase())) return false;
+    }
+    if (filters.city && !event.city.toLowerCase().includes(filters.city.toLowerCase())) {
+      return false;
+    }
+    if (filters.dateFrom) {
+      const from = new Date(filters.dateFrom).getTime();
+      const eventMs = Number(event.dateTime) / 1_000_000;
+      if (eventMs < from) return false;
+    }
+    if (filters.dateTo) {
+      const to = new Date(filters.dateTo).getTime() + 86400000;
+      const eventMs = Number(event.dateTime) / 1_000_000;
+      if (eventMs > to) return false;
+    }
+    return true;
+  });
 
-      if (
-        filters.artistName &&
-        !artistName.toLowerCase().includes(filters.artistName.toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        filters.city &&
-        !event.city.toLowerCase().includes(filters.city.toLowerCase())
-      ) {
-        return false;
-      }
-      if (filters.dateFrom) {
-        const from = new Date(filters.dateFrom).getTime();
-        const eventMs = Number(event.dateTime) / 1_000_000;
-        if (eventMs < from) return false;
-      }
-      if (filters.dateTo) {
-        const to = new Date(filters.dateTo).getTime() + 86400000;
-        const eventMs = Number(event.dateTime) / 1_000_000;
-        if (eventMs > to) return false;
-      }
-      return true;
-    });
-  }, [allEvents, artists, filters]);
+  const sortedEvents = [...filteredEvents].sort(
+    (a, b) => Number(a.dateTime) - Number(b.dateTime)
+  );
 
   const showAdminButton =
     !isLoading &&
@@ -88,10 +82,9 @@ export default function DiscoverPage() {
     identity &&
     (artists.length === 0 || (artists.length > 0 && allEvents.length === 0));
 
-  const handleRetry = () => {
-    if (artistsError) refetchArtists();
-    if (eventsError) refetchEvents();
-  };
+  const selectedArtist = selectedArtistId
+    ? artists.find((a) => a.id === selectedArtistId)
+    : null;
 
   return (
     <main className="min-h-screen bg-background">
@@ -121,7 +114,7 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        {/* Error state — shown prominently above filters when backend is unreachable */}
+        {/* Error state */}
         {hasError && !isLoading && (
           <div className="mb-8 flex items-start gap-4 p-5 bg-destructive/10 border border-destructive/40 rounded-sm">
             <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
@@ -143,18 +136,34 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        {/* Artist roster chips — only shown when data loaded successfully */}
+        {/* Artist roster chips */}
         {!hasError && artists.length > 0 && (
           <div className="mb-8">
             <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-3">
               Artists
             </p>
             <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedArtistId(null)}
+                className={`px-3 py-1 text-sm font-mono border rounded transition-colors ${
+                  selectedArtistId === null
+                    ? 'border-neon-amber text-neon-amber bg-neon-amber/10'
+                    : 'border-border hover:border-primary hover:text-primary'
+                }`}
+              >
+                All
+              </button>
               {artists.map((artist) => (
                 <button
                   key={artist.id}
-                  onClick={() => setSelectedArtistId(artist.id)}
-                  className="px-3 py-1 text-sm font-mono border border-border rounded hover:border-primary hover:text-primary transition-colors"
+                  onClick={() =>
+                    setSelectedArtistId(artist.id === selectedArtistId ? null : artist.id)
+                  }
+                  className={`px-3 py-1 text-sm font-mono border rounded transition-colors ${
+                    selectedArtistId === artist.id
+                      ? 'border-neon-amber text-neon-amber bg-neon-amber/10'
+                      : 'border-border hover:border-primary hover:text-primary'
+                  }`}
                 >
                   {artist.name}
                 </button>
@@ -177,23 +186,29 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        {/* Empty state — only when loaded successfully but no events match */}
-        {!isLoading && !hasError && filteredEvents.length === 0 && (
+        {/* Empty state */}
+        {!isLoading && !hasError && sortedEvents.length === 0 && (
           <div className="text-center py-20 text-muted-foreground font-mono">
             No upcoming events found.
           </div>
         )}
 
         {/* Event grid */}
-        {!isLoading && !hasError && filteredEvents.length > 0 && (
+        {!isLoading && !hasError && sortedEvents.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event, idx) => (
-              <EventCard
-                key={`${event.artistId}-${event.eventTitle}-${idx}`}
-                event={event}
-                onArtistClick={(artistId) => setSelectedArtistId(artistId)}
-              />
-            ))}
+            {sortedEvents.map((event, idx) => {
+              const artist = artists.find((a) => a.id === event.artistId);
+              const artistName =
+                artist?.name ??
+                event.artistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+              return (
+                <EventCard
+                  key={`${event.artistId}-${event.dateTime}-${idx}`}
+                  event={event}
+                  artistName={artistName}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -202,6 +217,10 @@ export default function DiscoverPage() {
       {selectedArtistId && (
         <ArtistEventPopup
           artistId={selectedArtistId}
+          artistName={
+            selectedArtist?.name ??
+            selectedArtistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+          }
           onClose={() => setSelectedArtistId(null)}
         />
       )}

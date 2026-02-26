@@ -5,8 +5,11 @@ import Time "mo:core/Time";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+
+
 
 actor {
   public type Event = {
@@ -36,22 +39,22 @@ actor {
     #alreadyExists;
     #notFound;
     #unauthorized;
-    #eventNotFound;
+    #eventNotFound : Text;
   };
 
   var events = Map.empty<Text, Event>();
   var artists = Map.empty<Text, Artist>();
-
   let userTrackedArtists = Map.empty<Principal, Set.Set<Text>>();
-  let userProfiles = Map.empty<Principal, UserProfile>();
-
-  var userRadarEvents = Map.empty<Principal, Set.Set<Text>>();
+  var userProfiles = Map.empty<Principal, UserProfile>();
+  // Declare radarEvents as stable to persist data across upgrades
+  stable var radarEvents = Map.empty<Principal, Set.Set<Text>>();
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   // System hooks.
   system func postupgrade() { _forceSeedData() };
   system func preupgrade() { () };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can get their profile");
@@ -644,29 +647,33 @@ actor {
     };
   };
 
-  // New CRUD: Persist save events per user
+  // Persist saved events per user in stable storage
   public shared ({ caller }) func addEventToRadar(eventId : Text) : async Result {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save events to radar");
     };
 
-    // Check if event exists
-    if (not events.containsKey(eventId)) {
-      return #eventNotFound;
-    };
+    // Attempt to retrieve the event by ID
+    let eventOption = events.get(eventId);
 
-    let currentEvents = switch (userRadarEvents.get(caller)) {
-      case (null) { Set.empty<Text>() };
-      case (?s) { s };
-    };
+    switch (eventOption) {
+      case (null) { #eventNotFound("Event with ID: " # eventId # " not found.") };
+      case (?_event) {
+        let currentEvents = switch (radarEvents.get(caller)) {
+          case (null) { Set.empty<Text>() };
+          case (?s) { s };
+        };
 
-    if (currentEvents.contains(eventId)) {
-      #alreadyExists;
-    } else {
-      let newEvents = Set.empty<Text>();
-      newEvents.add(eventId);
-      userRadarEvents.add(caller, newEvents);
-      #success;
+        if (currentEvents.contains(eventId)) {
+          #alreadyExists;
+        } else {
+          // Add new eventId to a cloned set of existing events
+          let newEvents = currentEvents.clone();
+          newEvents.add(eventId);
+          radarEvents.add(caller, newEvents);
+          #success;
+        };
+      };
     };
   };
 
@@ -675,15 +682,15 @@ actor {
       Runtime.trap("Unauthorized: Only users can remove events from radar");
     };
 
-    switch (userRadarEvents.get(caller)) {
+    switch (radarEvents.get(caller)) {
       case (null) { #notFound };
-      case (?events) {
-        if (not events.contains(eventId)) {
+      case (?savedEvents) {
+        if (not savedEvents.contains(eventId)) {
           #notFound;
         } else {
-          let newEvents = events.clone();
+          let newEvents = savedEvents.clone();
           newEvents.remove(eventId);
-          userRadarEvents.add(caller, newEvents);
+          radarEvents.add(caller, newEvents);
           #success;
         };
       };
@@ -695,19 +702,20 @@ actor {
       Runtime.trap("Unauthorized: Only users can view radar events");
     };
 
-    switch (userRadarEvents.get(caller)) {
+    switch (radarEvents.get(caller)) {
       case (null) { [] };
       case (?eventIds) {
-        let eventsArray = eventIds.toArray();
+        let eventsArray = eventIds.values().toArray();
         let mapped = eventsArray.map(
-          func(id) {
+          func(id : Text) : ?Event {
             events.get(id);
           }
         );
-        let filtered = mapped.filter(func(opt) { opt != null });
-        let mappedToEvent = filtered.map(func(opt) { opt.unwrap() });
+        let filtered = mapped.filter(func(opt : ?Event) : Bool { opt != null });
+        let mappedToEvent = filtered.map(func(opt : ?Event) : Event { opt.unwrap() });
         mappedToEvent;
       };
     };
   };
 };
+

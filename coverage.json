@@ -1,47 +1,31 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T16:48:12.344Z",
+  "generatedAt": "2026-02-26T17:53:31.809Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-57",
-        "summary": "Extend the backend data model to support per-user saved events: add a stable `HashMap<Principal, [Text]>` (or equivalent) that stores a list of event IDs a user has added to their radar. Expose two new update functions: `addEventToRadar(eventId: Text) : async Result` and `removeEventFromRadar(eventId: Text) : async Result`, both requiring an authenticated caller. Expose one new query function: `getRadarEvents() : async [Event]` that returns the full event records for all event IDs saved by the calling principal.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-58",
-        "summary": "In `frontend/src/hooks/useQueries.ts`, add three new React Query hooks: `useRadarEvents()` — calls `getRadarEvents()` on the authenticated actor and returns the list of saved events; `useAddEventToRadar()` — a mutation hook that calls `addEventToRadar(eventId)` and on success invalidates the `radarEvents` query cache; `useRemoveEventFromRadar()` — a mutation hook that calls `removeEventFromRadar(eventId)` and on success invalidates the `radarEvents` query cache. All three hooks must use the authenticated actor and must not be called when the user is unauthenticated.",
+        "id": "REQ-67",
+        "summary": "In `frontend/src/components/EventCard.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' linking to Dice.fm and '🎟 Songkick' linking to Songkick) built with `buildTicketSearchUrl` are present and visible on every event card. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme (neon amber accent, compact size, same visual weight as the '✈ Plan Trip' and '📡 Add to Radar' buttons).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/EventCard.tsx",
+          "frontend/src/utils/ticketSearch.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/EventCard.tsx",
+          "frontend/src/utils/ticketSearch.ts"
         ]
       },
       {
-        "id": "REQ-59",
-        "summary": "Add a compact '📡 Add to Radar' button to each event card in `frontend/src/components/EventCard.tsx`. When an authenticated user clicks the button, call `addEventToRadar` via the `useAddEventToRadar` mutation hook and show a brief success toast ('Added to Radar'). If the event is already saved, show the button in an active/filled state labelled '📡 On Radar' and clicking it calls `removeEventFromRadar` with a toast ('Removed from Radar'). If the user is unauthenticated, clicking the button shows a toast prompting login ('Log in to save events to your Radar'). Style the button consistently with the dark techno theme (neon amber accent, compact size, same visual weight as the existing '✈ Plan Trip' button).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/EventCard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/EventCard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-60",
-        "summary": "Add the same '📡 Add to Radar' / '📡 On Radar' toggle button to each event row inside `frontend/src/components/ArtistEventPopup.tsx`, with identical authentication-gating, toast notifications, and styling as described in REQ-59.",
+        "id": "REQ-68",
+        "summary": "In `frontend/src/components/ArtistEventPopup.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') built with `buildTicketSearchUrl` are present on every event row inside the popup. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/ArtistEventPopup.tsx"
@@ -51,8 +35,8 @@
         ]
       },
       {
-        "id": "REQ-61",
-        "summary": "Update `frontend/src/pages/MyRadarPage.tsx` to display events the authenticated user has explicitly saved via 'Add to Radar', sourced from the `useRadarEvents` hook. These saved events must appear in a dedicated section labelled 'Saved Events' (or equivalent) on the Radar page, sorted chronologically. Each row must show event title, artist name, venue, city, date/time, and the same ticket-search buttons (Dice / Songkick) already present on other event cards. If the user has no saved events, show a prompt such as 'No saved events yet — tap 📡 Add to Radar on any event to save it here.' The existing 'tracked artist upcoming events' section of My Radar must remain unchanged.",
+        "id": "REQ-69",
+        "summary": "In `frontend/src/pages/MyRadarPage.tsx`, ensure the 'Saved Events' section also shows the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') on each saved event row, using the same `buildTicketSearchUrl` utility. Remove any generic 'https://ra.co' or 'https://ra.ca' link from the Radar page event rows.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/MyRadarPage.tsx"
@@ -64,19 +48,14 @@
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
     "frontend/src/components/ArtistEventPopup.tsx",
     "frontend/src/components/EventCard.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/MyRadarPage.tsx",
+    "frontend/src/utils/ticketSearch.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 49,
   "summary": "Techno Beacon is a mobile app for die-hard techno fans to discover, track, and get alerts on upcoming sets from techno artists worldwide. It aggregates real-time event data from sources like Resident Advisor, Bandsintown, and artist feeds, filters out irrelevant events, and delivers personalized notifications. The focus is on authentic techno experiences and the pioneers who define the genre.",
   "architectural_notes": [
     "Aggregate real-time event data from third-party sources: Resident Advisor (RA), Bandsintown, and artist social/RSS feeds",
@@ -17,7 +17,7 @@
     "Production/deployed version requires admin login and does not show artist names or event data — preview (left screen) works but deployed site (right screen) does not; regression introduced in latest deploy",
     "Artists page regressed again in Version 16 — artists not showing after Trip Planner deploy"
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-a-discover-page-that-lists-all-upcoming-techno-events-sorted-by-date-each-event-card-must-show-artist-name-event-title-venue-city-country-date-and-time-a-source-badge-ra-bandsintown-etc-and-a-link-to-the-external-event-url-include-a-search-filter-bar-that-lets-users-filter-events-by-artist-name-city-or-date-range",
@@ -306,6 +306,54 @@
         "REQ-61"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-useradarevents-react-query-hook-in-frontend-src-hooks-usequeries-ts-to-ensure-it-1-uses-the-authenticated-actor-not-the-anonymous-actor-when-calling-getradarevents-2-has-the-correct-query-key-so-that-after-useaddeventtoradar-or-useremoveeventfromradar-mutations-succeed-and-invalidate-the-cache-the-hook-re-fetches-and-returns-the-updated-list-3-maps-the-backend-response-to-the-expected-event-shape-used-by-myradarpage-tsx-4-logs-any-errors-to-the-browser-console-rather-than-silently-returning-an-empty-array",
+      "title": "Fix the `useRadarEvents` React Query hook in `frontend/src/hooks/useQueries.ts` to ensure it: (1) uses the authenticated actor (not the anonymous actor) when calling `getRadarEvents()`; (2) has the correct query key so that after `useAddEventToRadar` or `useRemoveEventFromRadar` mutations succeed and invalidate the cache, the hook re-fetches and returns the updated list; (3) maps the backend response to the expected event shape used by `MyRadarPage.tsx`; (4) logs any errors to the browser console rather than silently returning an empty array.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-frontend-src-pages-myradarpage-tsx-to-correctly-render-the-saved-events-section-using-data-returned-by-the-useradarevents-hook-ensure-1-the-component-subscribes-to-useradarevents-and-re-renders-when-the-query-data-updates-after-a-radar-add-remove-action-2-saved-events-are-displayed-sorted-chronologically-3-each-row-shows-event-title-artist-name-venue-city-date-time-and-the-dice-fm-songkick-ticket-search-buttons-4-the-empty-state-prompt-no-saved-events-yet-tap-add-to-radar-on-any-event-to-save-it-here-is-shown-only-when-the-hook-returns-a-genuinely-empty-array-not-while-loading-or-on-error",
+      "title": "Fix `frontend/src/pages/MyRadarPage.tsx` to correctly render the 'Saved Events' section using data returned by the `useRadarEvents` hook. Ensure: (1) the component subscribes to `useRadarEvents` and re-renders when the query data updates after a radar add/remove action; (2) saved events are displayed sorted chronologically; (3) each row shows event title, artist name, venue, city, date/time, and the Dice.fm / Songkick ticket-search buttons; (4) the empty-state prompt 'No saved events yet — tap 📡 Add to Radar on any event to save it here.' is shown only when the hook returns a genuinely empty array, not while loading or on error.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-eventcard-tsx-and-frontend-src-components-artisteventpopup-tsx-ensure-the-event-id-value-passed-to-addeventtoradar-and-removeeventfromradar-is-the-exact-id-field-from-the-event-object-as-returned-by-the-backend-not-a-derived-value-display-name-or-index-add-a-console-error-log-that-surfaces-the-full-error-response-from-the-backend-when-addeventtoradar-or-removeeventfromradar-returns-an-error-so-the-failure-reason-is-visible-in-the-browser-console-rather-than-only-showing-a-generic-toast",
+      "title": "In `frontend/src/components/EventCard.tsx` and `frontend/src/components/ArtistEventPopup.tsx`, ensure the event ID value passed to `addEventToRadar` and `removeEventFromRadar` is the exact `id` field from the event object as returned by the backend — not a derived value, display name, or index. Add a `console.error` log that surfaces the full error response from the backend when `addEventToRadar` or `removeEventFromRadar` returns an error, so the failure reason is visible in the browser console rather than only showing a generic toast.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-eventcard-tsx-ensure-the-two-compact-ticket-search-buttons-dice-linking-to-dice-fm-and-songkick-linking-to-songkick-built-with-buildticketsearchurl-are-present-and-visible-on-every-event-card-remove-any-remaining-generic-https-ra-co-or-https-ra-ca-link-that-was-re-introduced-both-buttons-must-open-in-a-new-tab-and-be-styled-consistently-with-the-dark-techno-theme-neon-amber-accent-compact-size-same-visual-weight-as-the-plan-trip-and-add-to-radar-buttons",
+      "title": "In `frontend/src/components/EventCard.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' linking to Dice.fm and '🎟 Songkick' linking to Songkick) built with `buildTicketSearchUrl` are present and visible on every event card. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme (neon amber accent, compact size, same visual weight as the '✈ Plan Trip' and '📡 Add to Radar' buttons).",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-artisteventpopup-tsx-ensure-the-two-compact-ticket-search-buttons-dice-and-songkick-built-with-buildticketsearchurl-are-present-on-every-event-row-inside-the-popup-remove-any-remaining-generic-https-ra-co-or-https-ra-ca-link-that-was-re-introduced-both-buttons-must-open-in-a-new-tab-and-be-styled-consistently-with-the-dark-techno-theme",
+      "title": "In `frontend/src/components/ArtistEventPopup.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') built with `buildTicketSearchUrl` are present on every event row inside the popup. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-pages-myradarpage-tsx-ensure-the-saved-events-section-also-shows-the-two-compact-ticket-search-buttons-dice-and-songkick-on-each-saved-event-row-using-the-same-buildticketsearchurl-utility-remove-any-generic-https-ra-co-or-https-ra-ca-link-from-the-radar-page-event-rows",
+      "title": "In `frontend/src/pages/MyRadarPage.tsx`, ensure the 'Saved Events' section also shows the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') on each saved event row, using the same `buildTicketSearchUrl` utility. Remove any generic 'https://ra.co' or 'https://ra.ca' link from the Radar page event rows.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -590,6 +638,22 @@
       "summary": "Extend the backend data model to support per-user saved events: add a stable `HashMap<Principal, [Text]>` (or equivalent) that stores a list of event IDs a user has added to their radar. Expose two new update functions: `addEventToRadar(eventId: Text) : async Result` and `removeEventFromRadar(eventId: Text) : async Result`, both requiring an authenticated caller. Expose one new query function: `getRadarEvents() : async [Event]` that returns the full event records for all event IDs saved by the calling principal.",
       "reqIds": [
         "REQ-57"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Audit and fix the backend `addEventToRadar` and `getRadarEvents` functions in `backend/main.mo`. Confirm that: (1) `addEventToRadar(eventId: Text)` correctly stores the event ID against the calling principal in the stable `radarEvents` HashMap and returns a success result; (2) `getRadarEvents()` reads from the same stable HashMap keyed by the calling principal and returns the full event records for all stored event IDs; (3) the stable HashMap is declared with `stable` keyword so its contents survive canister upgrades; (4) the `postupgrade` hook does not wipe or overwrite the `radarEvents` map when re-seeding artist/event data.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Audit and fix the `addEventToRadar(eventId: Text)` function in `backend/main.mo` to ensure the event ID passed from the frontend exactly matches the event ID keys stored in the events HashMap. Verify that: (1) event records are stored and keyed by the same ID field that is returned to the frontend via `getAllEvents` and `getEventsByArtist`; (2) `addEventToRadar` looks up the event by that exact key before storing it against the caller's principal in the stable `radarEvents` HashMap; (3) if the event ID is not found in the events map, return a descriptive error result (e.g. `#err(\"Event not found\")`) rather than silently failing; (4) the stable `radarEvents` HashMap is declared with the `stable` keyword so its contents survive canister upgrades; (5) the `postupgrade` hook does not wipe or overwrite the `radarEvents` map when re-seeding artist/event data.",
+      "reqIds": [
+        "REQ-65"
       ],
       "status": "pending"
     }

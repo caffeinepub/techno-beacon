@@ -128,6 +128,7 @@ export default function ArtistCard({
       {showPopup && (
         <ArtistEventPopup
           artistId={id}
+          artistName={name}
           onClose={() => setShowPopup(false)}
         />
       )}
