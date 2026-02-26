@@ -1,48 +1,69 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore AdminInitButton and seed data initialization functionality",
+  "title": "Fix AdminInitButton visibility and admin spinner clearing",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins",
+      "summary": "Fix AdminInitButton to correctly detect admin status and render the 'Initialize Data' button for confirmed admin users on DiscoverPage and ArtistsPage",
       "acceptanceCriteria": [
-        "Admin user sees the 'Initialize Data' button on the ArtistsPage",
-        "Clicking the button triggers the backend seed data initialization",
-        "The spinner does not run indefinitely — it resolves or times out within 5 seconds",
-        "Non-admin users do not see the button"
+        "The 'Initialize Data' button is visible to admin users on DiscoverPage",
+        "The 'Initialize Data' button is visible to admin users on ArtistsPage",
+        "Non-admin users do not see the button",
+        "The button is not rendered while admin status is still being determined"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/AdminInitButton.tsx",
           "operation": "modify",
-          "description": "Review and fix the admin detection logic to ensure it correctly receives actor and identity state from useActor and useIsAdmin hooks. Verify the 5-second timeout guard implemented with useRef is properly clearing the timer on component unmount. Ensure the loading state correctly transitions when the actor becomes available and admin status is confirmed. Add explicit error handling for the initializeSeedData call with user-facing feedback. Verify the authorization component's usage instructions are followed for admin-only UI rendering."
+          "description": "Fix the admin status detection logic to correctly check isCallerAdmin backend function and ensure the button renders for confirmed admins. Ensure the component waits for both actor readiness and identity availability before checking admin status. Add proper conditional rendering that only shows the button when identity exists, actor is ready, and isAdmin is true."
         },
         {
-          "path": "frontend/src/pages/ArtistsPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure AdminInitButton is properly rendered on the ArtistsPage and receives necessary context. Verify the component is positioned where admins can easily find it. Confirm the page waits for authentication state to stabilize before rendering admin-gated components."
+          "description": "Add or verify the useIsAdmin query hook that calls actor.isCallerAdmin() and is properly enabled only when actor is available and identity exists. Ensure this query returns the correct admin status and updates when actor or identity changes."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time",
+      "summary": "Fix the admin detection loading state in AdminInitButton so that the spinner clears once admin status has been resolved",
       "acceptanceCriteria": [
-        "useActor resolves to a valid actor within a reasonable time after login",
-        "AdminInitButton receives the actor and proceeds past the loading guard",
-        "Actor readiness state is correctly propagated to consuming components"
+        "The spinner disappears once the actor is initialized and admin status is determined",
+        "The component does not remain stuck in a loading state after identity and actor are ready",
+        "If the actor is not yet ready, a spinner is shown briefly and then resolves"
       ],
       "file_operations": [
         {
+          "path": "frontend/src/components/AdminInitButton.tsx",
+          "operation": "modify",
+          "description": "Fix the loading state logic to correctly combine actor fetching state, identity availability, and admin query loading state. Ensure the spinner only shows while actor is fetching OR admin status is being queried, and clears immediately once both are resolved. Add proper isFetching checks from useActor and combine with the admin query's isLoading state."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Review the useIsAdmin hook implementation to ensure it correctly waits for actor availability before querying admin status. Add proper enabled conditions that check both actor presence and authentication state. Ensure the hook returns consistent loading/fetching states that components can rely on to avoid premature rendering. Verify the query is properly invalidated when actor changes or authentication state updates."
-        },
+          "description": "Ensure the useIsAdmin hook (or equivalent admin status query) properly exposes isLoading and isFetching states, and that the query is marked as stale appropriately when actor or identity changes. Verify the enabled condition prevents premature query execution."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Audit the useActor hook readiness signaling to ensure that actor availability is correctly communicated to consumers like AdminInitButton",
+      "acceptanceCriteria": [
+        "AdminInitButton re-renders correctly when the actor transitions from uninitialized to ready",
+        "No stale or undefined actor reference causes AdminInitButton to skip rendering the button",
+        "The actor readiness state is consistent with what useQueries and other hooks expect"
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/AdminInitButton.tsx",
           "operation": "modify",
-          "description": "Update the component to properly consume the loading and fetching states from both useActor and useIsAdmin hooks. Ensure the component shows appropriate loading UI while waiting for actor readiness and admin status resolution. Add defensive checks for actor availability before attempting to call backend functions. Implement proper error boundaries for actor initialization failures."
+          "description": "Review and fix the dependencies and conditional logic that determines when to check admin status. Ensure the component properly reacts to changes in actor, identity, and isFetching states from useActor. Add useEffect or query invalidation if needed to force re-evaluation when actor becomes ready."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Audit all query hooks to ensure they consistently use the actor availability pattern: enabled: !!actor && !actorFetching (or similar). Verify that admin status queries and other dependent queries properly re-run when the actor transitions from unavailable to available."
         }
       ]
     }

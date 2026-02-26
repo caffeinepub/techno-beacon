@@ -1,72 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Restore AdminInitButton and seed data initialization functionality",
+  "title": "Fix AdminInitButton visibility and admin spinner clearing",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
+      "text": "Fix the AdminInitButton component so that it correctly detects admin status and renders the 'Initialize Data' button for confirmed admin users. The button must be visible on both the DiscoverPage and ArtistsPage when the authenticated user is an admin.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "its not, its the same, initialize data not there ect"
+          "not showing not working whats the problem"
         ]
       },
       "acceptanceCriteria": [
-        "Admin user sees the 'Initialize Data' button on the ArtistsPage",
-        "Clicking the button triggers the backend seed data initialization",
-        "The spinner does not run indefinitely — it resolves or times out within 5 seconds",
-        "Non-admin users do not see the button"
+        "The 'Initialize Data' button is visible to admin users on DiscoverPage",
+        "The 'Initialize Data' button is visible to admin users on ArtistsPage",
+        "Non-admin users do not see the button",
+        "The button is not rendered while admin status is still being determined"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+      "text": "Fix the admin detection loading state in AdminInitButton so that the spinner clears once admin status has been resolved. The component must not remain in an infinite loading/spinner state after the actor and identity are ready.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "its not, its the same, initialize data not there ect"
+          "not showing not working whats the problem"
         ]
       },
       "acceptanceCriteria": [
-        "useActor resolves to a valid actor within a reasonable time after login",
-        "AdminInitButton receives the actor and proceeds past the loading guard",
-        "Actor readiness state is correctly propagated to consuming components"
+        "The spinner disappears once the actor is initialized and admin status is determined",
+        "The component does not remain stuck in a loading state after identity and actor are ready",
+        "If the actor is not yet ready, a spinner is shown briefly and then resolves"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Verify the backend initializeSeedData (or equivalent) function is callable and returns successfully when invoked by an admin principal. Ensure the admin access control check in the backend correctly identifies the admin caller.",
+      "text": "Audit the useActor hook readiness signaling to ensure that actor availability is correctly communicated to consumers like AdminInitButton. The actor must be considered 'ready' only when fully initialized, and dependent components must re-render when readiness changes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "not showing not working whats the problem"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AdminInitButton re-renders correctly when the actor transitions from uninitialized to ready",
+        "No stale or undefined actor reference causes AdminInitButton to skip rendering the button",
+        "The actor readiness state is consistent with what useQueries and other hooks expect"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Audit the backend isAdmin check to ensure it correctly identifies the calling principal as an admin. Verify the admin principal is stored and compared correctly so that admin users are not incorrectly treated as non-admins.",
       "target": "backend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "initialize data not there ect"
+          "not showing not working whats the problem"
         ]
       },
       "acceptanceCriteria": [
-        "Admin principal can call the seed/init function without an access-denied error",
-        "Seed data (artists and events) is persisted to state after initialization",
-        "Non-admin principals receive an error when attempting to call the init function"
+        "The isAdmin backend function returns true for the designated admin principal",
+        "The admin principal is correctly set during canister initialization or seed data setup",
+        "Frontend admin status queries return the correct value after identity is established"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts directly — propose safe alternatives if hook behavior needs adjustment",
-    "All Motoko logic must remain in the single backend/main.mo actor"
+    "Do not modify frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts directly — only safe alternatives or wrappers are permitted",
+    "Do not alter existing data models in the backend unless strictly necessary for the fix"
   ],
   "nonGoals": [
-    "Adding new features or pages",
-    "Changing the visual design or theme",
-    "Modifying authentication flow beyond what is needed to fix actor readiness"
+    "Adding new admin features beyond fixing the existing Initialize Data button",
+    "Changing the visual design or layout of any pages",
+    "Modifying seed data content or structure"
   ],
   "imageRequirements": {
     "required": [],

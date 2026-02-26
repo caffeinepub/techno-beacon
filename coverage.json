@@ -1,44 +1,57 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T22:47:23.898Z",
+  "generatedAt": "2026-02-26T23:10:49.231Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
+        "summary": "Fix the AdminInitButton component so that it correctly detects admin status and renders the 'Initialize Data' button for confirmed admin users. The button must be visible on both the DiscoverPage and ArtistsPage when the authenticated user is an admin.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/AdminInitButton.tsx",
-          "frontend/src/pages/ArtistsPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
           "frontend/src/components/AdminInitButton.tsx",
-          "frontend/src/pages/ArtistsPage.tsx"
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+        "summary": "Fix the admin detection loading state in AdminInitButton so that the spinner clears once admin status has been resolved. The component must not remain in an infinite loading/spinner state after the actor and identity are ready.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/AdminInitButton.tsx"
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/AdminInitButton.tsx"
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Verify the backend initializeSeedData (or equivalent) function is callable and returns successfully when invoked by an admin principal. Ensure the admin access control check in the backend correctly identifies the admin caller.",
+        "summary": "Audit the useActor hook readiness signaling to ensure that actor availability is correctly communicated to consumers like AdminInitButton. The actor must be considered 'ready' only when fully initialized, and dependent components must re-render when readiness changes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Audit the backend isAdmin check to ensure it correctly identifies the calling principal as an admin. Verify the admin principal is stored and compared correctly so that admin users are not incorrectly treated as non-admins.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
@@ -52,7 +65,6 @@
     "frontend-implementation-plan.json",
     "frontend/src/components/AdminInitButton.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ArtistsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -207,31 +207,51 @@ export function useIsAdmin() {
   const { identity, isInitializing } = useInternetIdentity();
   const isAuthenticated = !!identity;
 
+  // Only run the admin check when identity is resolved, actor is ready, and user is authenticated
+  const isReady = !isInitializing && !!actor && !actorFetching && isAuthenticated;
+
+  const principalStr = identity?.getPrincipal().toString() ?? 'anonymous';
+
   const query = useQuery<boolean>({
-    queryKey: ['isAdmin', identity?.getPrincipal().toString()],
+    queryKey: ['isCallerAdmin', principalStr],
     queryFn: async () => {
       if (!actor) return false;
       try {
-        const result = await actor.isAdmin();
-        return result;
+        // Use isCallerAdmin which is the authenticated version
+        const result = await actor.isCallerAdmin();
+        return result === true;
       } catch {
-        return false;
+        // Fallback to isAdmin if isCallerAdmin fails
+        try {
+          const result = await actor.isAdmin();
+          return result === true;
+        } catch {
+          return false;
+        }
       }
     },
-    // Only run when we have a fully authenticated actor (not anonymous)
-    enabled: !!actor && !actorFetching && isAuthenticated && !isInitializing,
+    enabled: isReady,
     retry: 2,
     retryDelay: 1000,
-    staleTime: 5 * 60 * 1000,
+    // Keep result fresh for 2 minutes; don't auto-refetch on window focus
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // isFetched is only true once the actor is ready AND the query has completed
-  const isFetched = !!actor && !actorFetching && !isInitializing && query.isFetched;
+  // Show loading only while we're genuinely waiting:
+  // - identity is still initializing
+  // - actor is being fetched
+  // - we're ready and the query hasn't settled yet (isLoading = no data yet)
+  const isLoading = isInitializing || actorFetching || (isReady && query.isLoading);
+
+  // isFetched is true once actor is ready and query has completed at least once
+  const isFetched = isReady && query.isFetched;
 
   return {
     ...query,
-    data: query.isError ? false : query.data,
-    isLoading: isInitializing || actorFetching || (!isFetched && !query.isError && isAuthenticated),
+    data: query.isError ? false : (query.data ?? false),
+    isLoading,
     isFetched,
   };
 }

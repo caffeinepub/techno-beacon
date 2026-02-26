@@ -14,7 +14,6 @@ export default function AdminInitButton() {
     data: isAdmin,
     isLoading: adminLoading,
     isFetched,
-    isError,
   } = useIsAdmin();
 
   const isAuthenticated = !!identity;
@@ -23,7 +22,8 @@ export default function AdminInitButton() {
   if (!isAuthenticated) return null;
 
   // Still initializing identity or actor — show subtle spinner
-  const isCheckingAdmin = isInitializing || actorFetching || !actor || (adminLoading && !isFetched && !isError);
+  // isCheckingAdmin is true only while we're genuinely waiting
+  const isCheckingAdmin = isInitializing || actorFetching || !actor || (adminLoading && !isFetched);
 
   if (isCheckingAdmin) {
     return (
@@ -35,7 +35,7 @@ export default function AdminInitButton() {
   }
 
   // Once settled — if not admin, hide completely
-  if (isError || isAdmin !== true) return null;
+  if (!isAdmin) return null;
 
   // Success state after initialization
   if (initMutation.isSuccess) {

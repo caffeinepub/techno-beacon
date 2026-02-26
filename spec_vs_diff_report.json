@@ -1,13 +1,13 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T22:47:23.893Z",
-  "summary": "The diff addresses REQ-1 and REQ-2 through frontend changes: AdminInitButton.tsx is updated with correct admin detection logic and spinner timeout behavior, ArtistsPage.tsx renders AdminInitButton for authenticated users, and useQueries.ts includes useIsAdmin with proper enabled conditions. REQ-3 (backend verification) shows no evidence of backend/main.mo changes.",
+  "generatedAt": "2026-02-26T23:10:49.226Z",
+  "summary": "The diff addresses REQ-1, REQ-2, and REQ-3 through changes to AdminInitButton.tsx and useQueries.ts. REQ-4 (backend isAdmin audit) shows no evidence of backend file changes.",
   "missing_requirements": [
     {
-      "id": "REQ-3",
-      "requirement": "Verify the backend initializeSeedData function is callable and returns successfully when invoked by an admin principal. Ensure the admin access control check in the backend correctly identifies the admin caller.",
-      "reason": "No changes to backend/main.mo are present in the diff. The backend actor file is not modified, so there is no evidence that admin access control or seed data initialization logic was verified or fixed.",
+      "id": "REQ-4",
+      "requirement": "Audit the backend isAdmin check to ensure it correctly identifies the calling principal as an admin. Verify the admin principal is stored and compared correctly so that admin users are not incorrectly treated as non-admins.",
+      "reason": "No backend files were modified in the diff. The diff only touches frontend files (AdminInitButton.tsx, useQueries.ts, frontend-file-summaries.txt, project_state.json). There is no evidence of any backend audit or fix to the isAdmin/isCallerAdmin function or admin principal storage.",
       "evidence": []
     }
   ],
@@ -17,7 +17,6 @@
     "frontend-file-summaries.txt",
     "frontend/src/components/AdminInitButton.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/ArtistsPage.tsx",
     "project_state.json"
   ]
 }

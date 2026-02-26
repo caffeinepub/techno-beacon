@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-admininitbutton-component-so-that-it-correctly-detects-admin-status-and-renders-the-seed-data-initialization-button-for-confirmed-admins-the-button-must-be-visible-and-functional-on-the-artistspage-for-admin-users-and-clicking-it-must-successfully-call-the-backend-seed-init-function",
-      "featureTitle": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
+      "featureId": "feature-fix-the-admininitbutton-component-so-that-it-correctly-detects-admin-status-and-renders-the-initialize-data-button-for-confirmed-admin-users-the-button-must-be-visible-on-both-the-discoverpage-and-artistspage-when-the-authenticated-user-is-an-admin",
+      "featureTitle": "Fix the AdminInitButton component so that it correctly detects admin status and renders the 'Initialize Data' button for confirmed admin users. The button must be visible on both the DiscoverPage and ArtistsPage when the authenticated user is an admin.",
       "files": [
         "frontend/src/components/AdminInitButton.tsx",
-        "frontend/src/pages/ArtistsPage.tsx"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,8 +22,8 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-useactor-hook-correctly-signals-readiness-so-that-admin-gated-components-like-admininitbutton-receive-a-valid-actor-reference-in-time-the-hook-must-not-stay-in-a-pending-state-indefinitely-after-authentication-resolves",
-      "featureTitle": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+      "featureId": "feature-fix-the-admin-detection-loading-state-in-admininitbutton-so-that-the-spinner-clears-once-admin-status-has-been-resolved-the-component-must-not-remain-in-an-infinite-loading-spinner-state-after-the-actor-and-identity-are-ready",
+      "featureTitle": "Fix the admin detection loading state in AdminInitButton so that the spinner clears once admin status has been resolved. The component must not remain in an infinite loading/spinner state after the actor and identity are ready.",
       "files": [
         "frontend/src/components/AdminInitButton.tsx",
         "frontend/src/hooks/useQueries.ts"
@@ -38,6 +38,26 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-audit-the-useactor-hook-readiness-signaling-to-ensure-that-actor-availability-is-correctly-communicated-to-consumers-like-admininitbutton-the-actor-must-be-considered-ready-only-when-fully-initialized-and-dependent-components-must-re-render-when-readiness-changes",
+      "featureTitle": "Audit the useActor hook readiness signaling to ensure that actor availability is correctly communicated to consumers like AdminInitButton. The actor must be considered 'ready' only when fully initialized, and dependent components must re-render when readiness changes.",
+      "files": [
+        "frontend/src/components/AdminInitButton.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }
