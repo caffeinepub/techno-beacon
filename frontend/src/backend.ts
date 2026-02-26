@@ -146,6 +146,7 @@ export interface backendInterface {
     getTrackedArtists(user: Principal): Promise<Array<string>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSeedData(): Promise<void>;
+    isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     removeEventFromRadar(eventId: string): Promise<Result>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
@@ -367,6 +368,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.initializeSeedData();
+            return result;
+        }
+    }
+    async isAdmin(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isAdmin();
             return result;
         }
     }

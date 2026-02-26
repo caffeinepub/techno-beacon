@@ -1,10 +1,10 @@
 import Iter "mo:core/Iter";
 import Map "mo:core/Map";
-import Set "mo:core/Set";
-import Time "mo:core/Time";
-import Text "mo:core/Text";
-import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+import Set "mo:core/Set";
+import Text "mo:core/Text";
+import Time "mo:core/Time";
+import Principal "mo:core/Principal";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
@@ -46,10 +46,13 @@ actor {
   var radarEvents = Map.empty<Principal, Set.Set<Text>>();
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+  var seedDataInitialized = false;
 
-  // System hooks.
-  system func postupgrade() { _forceSeedData() };
   system func preupgrade() { () };
+
+  public query ({ caller }) func isAdmin() : async Bool {
+    AccessControl.isAdmin(accessControlState, caller);
+  };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -72,15 +75,17 @@ actor {
     userProfiles.get(user);
   };
 
-  // Admin-only: forcibly re-initialize ALL seed data, including after upgrades or data loss.
   public shared ({ caller }) func initializeSeedData() : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
       Runtime.trap("Unauthorized: Only admins can initialize seed data");
     };
-    _forceSeedData();
+
+    if (not seedDataInitialized) {
+      _forceSeedData();
+      seedDataInitialized := true;
+    };
   };
 
-  // Internal: never call this after upgrade for new data, only for forced seed state.
   func _forceSeedData() {
     artists := Map.empty<Text, Artist>();
     events := Map.empty<Text, Event>();
@@ -564,43 +569,133 @@ actor {
       events.add(eventId, event);
     };
 
-    // Joey Beltram events
+    // Joey Beltram events (REQ-112)
     for ((eventId, event) in [
       (
-        "joey-beltram_berlin_techno_night",
+        "joey-beltram_phantasma",
         {
           artistId = "joey-beltram";
-          eventTitle = "Techno Night Berlin — Joey Beltram (LIVE), Thomas Schumacher, Alex Bau";
-          venue = "About Blank";
-          city = "Berlin";
-          country = "Germany";
-          dateTime = 1_773_600_000_000_000_000; // Future date
+          eventTitle = "Phantasma: Joey Beltram, Adam X, cotton + Sissies of Mercy";
+          venue = "Paragon";
+          city = "New York City";
+          country = "USA";
+          dateTime = 1_768_723_200_000_000_000; // ISO '2026-03-13T22:00:00Z'
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
       ),
       (
-        "joey-beltram_amsterdam_fabrique",
+        "joey-beltram_resist26",
         {
           artistId = "joey-beltram";
-          eventTitle = "Joey Beltram (Mentasm/NYC) - Secret Cinema (Live Set) - Estroe";
-          venue = "De Fabrique";
+          eventTitle = "RESIST'26 WITH JOEY BELTRAM";
+          venue = "TBA (Location Secret)";
+          city = "Atlanta";
+          country = "USA";
+          dateTime = 1_768_809_600_000_000_000; // ISO '2026-03-21T22:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Derrick May events (REQ-113)
+    for ((eventId, event) in [
+      (
+        "derrick-may_okeechobee_festival",
+        {
+          artistId = "derrick-may";
+          eventTitle = "Okeechobee Music & Arts Festival";
+          venue = "Sunshine Grove";
+          city = "Miami";
+          country = "USA";
+          dateTime = 1_769_929_600_000_000_000; // ISO '2026-03-19T20:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "derrick-may_medetroit_2026",
+        {
+          artistId = "derrick-may";
+          eventTitle = "MEDETROIT 2026; with Carl Craig";
+          venue = "Sky Center";
+          city = "Central Mayorista";
+          country = "Colombia";
+          dateTime = 1_772_767_200_000_000_000; // ISO '2026-05-16T18:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Juan Atkins events (REQ-114)
+    for ((eventId, event) in [
+      (
+        "juan-atkins_blå_oslo",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Juan Atkins (US)";
+          venue = "Blå";
+          city = "Oslo";
+          country = "Norway";
+          dateTime = 1_768_626_400_000_000_000; // ISO '2026-02-27T22:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_traum_nacht",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Traum Nacht: Juan Atkins";
+          venue = "TRAUM";
+          city = "Antwerp";
+          country = "Belgium";
+          dateTime = 1_768_712_800_000_000_000; // ISO '2026-02-28T22:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_detroit_love",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "DETROIT LOVE: Mike Banks, Carl Craig, Moodymann, Juan Atkins";
+          venue = "Fvtvr";
+          city = "Paris";
+          country = "France";
+          dateTime = 1_773_285_600_000_000_000; // ISO '2026-05-09T22:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_nuits_sonores",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Nuits sonores 2026";
+          venue = "TBA Les Grandes Locos";
+          city = "Lyon";
+          country = "France";
+          dateTime = 1_773_673_600_000_000_000; // ISO '2026-05-13T20:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_dekmantel_festival",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Dekmantel Festival 2026";
+          venue = "Amsterdamse Bos";
           city = "Amsterdam";
           country = "Netherlands";
-          dateTime = 1_780_000_000_000_000_000; // Future date
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-      (
-        "joey-beltram_london_minimalism",
-        {
-          artistId = "joey-beltram";
-          eventTitle = "Minimalism Overdose: Joey Beltram, DJ Rush, Maskio (Live), Space DJZ";
-          venue = "The End";
-          city = "London";
-          country = "UK";
-          dateTime = 1_776_250_000_000_000_000; // Future date
+          dateTime = 1_792_759_600_000_000_000; // ISO '2026-07-29T14:00:00Z'
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -609,107 +704,82 @@ actor {
       events.add(eventId, event);
     };
 
-    // Derrick May events
+    // Kevin Saunderson events (REQ-115)
     for ((eventId, event) in [
       (
-        "derrick-may_detroit_fest_days",
-        {
-          artistId = "derrick-may";
-          eventTitle = "Detroit Fest Days - Derrick May, Marcel Dettmann, Laurent Garnier";
-          venue = "Movement Festival";
-          city = "Detroit";
-          country = "USA";
-          dateTime = 1_765_805_122_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-      (
-        "derrick-may_berlin_dj_crate",
-        {
-          artistId = "derrick-may";
-          eventTitle = "DJ Crate - Derrick May, Rødhåd, Dense & Pika";
-          venue = "Watergate";
-          city = "Berlin";
-          country = "Germany";
-          dateTime = 1_790_100_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-      (
-        "derrick-may_frankfurt_bicentenary",
-        {
-          artistId = "derrick-may";
-          eventTitle = "Frankfurt Bicentenary - Derrick May, Adriatique, Sven Väth";
-          venue = "Messe Frankfurt";
-          city = "Frankfurt";
-          country = "Germany";
-          dateTime = 1_800_600_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-    ].values()) {
-      events.add(eventId, event);
-    };
-
-    // Juan Atkins events (corrected: all real events from RA)
-    for ((eventId, event) in [
-      (
-        "juan-atkins_berlin_minimal_dj",
-        {
-          artistId = "juan-atkins";
-          eventTitle = "Minimal DJ's - Juan Atkins, Matador, Charlotte de Witte";
-          venue = "Arena Berlin";
-          city = "Berlin";
-          country = "Germany";
-          dateTime = 1_795_100_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-      (
-        "juan-atkins_tokyo_freedom_fest",
-        {
-          artistId = "juan-atkins";
-          eventTitle = "Tokyo Freedom Fest - Model 500 (Live), Joey Beltram, Jay Denham";
-          venue = "Unit";
-          city = "Tokyo";
-          country = "Japan";
-          dateTime = 1_806_000_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
-    ].values()) {
-      events.add(eventId, event);
-    };
-
-    // Kevin Saunderson events
-    for ((eventId, event) in [
-      (
-        "kevin-saunderson_chicago_weekend_lockdown",
+        "kevin-saunderson_baile_world",
         {
           artistId = "kevin-saunderson";
-          eventTitle = "Weekend Lockdown - Kevin Saunderson, Ricardo Villalobos & Jeff Mills";
-          venue = "Sound Bar";
-          city = "Chicago";
+          eventTitle = "BAILE WORLD Ft Kevin Saunderson - A Night Celebrating Black Club Music";
+          venue = "9thirtyLA";
+          city = "Los Angeles";
           country = "USA";
-          dateTime = 1_790_500_000_000_000_000;
+          dateTime = 1_768_712_800_000_000_000; // ISO '2026-02-27T22:00:00Z'
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
       ),
       (
-        "kevin-saunderson_stockholm_saturday_stage",
+        "kevin-saunderson_club_vinyl",
         {
           artistId = "kevin-saunderson";
-          eventTitle = "Saturday Stage - Kevin Saunderson, Chris Liebing & Charlotte de Witte";
-          venue = "Dansens Hus";
-          city = "Stockholm";
-          country = "Sweden";
-          dateTime = 1_801_000_000_000_000_000;
+          eventTitle = "Kevin Saunderson";
+          venue = "Club Vinyl";
+          city = "Denver";
+          country = "USA";
+          dateTime = 1_770_164_800_000_000_000; // ISO '2026-04-10T22:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_distortion",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Distortion | 3–7 June 2026";
+          venue = "TBA";
+          city = "All over Copenhagen";
+          country = "Denmark";
+          dateTime = 1_786_048_800_000_000_000; // ISO '2026-06-03T18:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_909_festival",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "909 Festival 2026";
+          venue = "Amsterdamse Bos";
+          city = "Amsterdam";
+          country = "Netherlands";
+          dateTime = 1_786_134_400_000_000_000; // ISO '2026-06-06T14:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_dreaming_festival",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Dreaming Festival 2026";
+          venue = "Parque Norte";
+          city = "Medellin";
+          country = "Colombia";
+          dateTime = 1_785_902_800_000_000_000; // ISO '2026-06-27T18:00:00Z'
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_defected_malta",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Defected Malta";
+          venue = "TBA Various Venues";
+          city = "Malta";
+          country = "Malta";
+          dateTime = 1_796_595_200_000_000_000; // ISO '2026-10-01T20:00:00Z'
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },

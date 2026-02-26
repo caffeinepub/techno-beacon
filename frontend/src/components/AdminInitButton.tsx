@@ -1,16 +1,56 @@
 import React from 'react';
 import { Database, Loader2, CheckCircle, AlertCircle, ShieldAlert } from 'lucide-react';
-import { useInitializeSeedData } from '../hooks/useQueries';
+import { useInitializeSeedData, useIsAdmin } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useActor } from '../hooks/useActor';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
 export default function AdminInitButton() {
   const initMutation = useInitializeSeedData();
+  const { identity, isInitializing } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
+  const {
+    data: isAdmin,
+    isLoading: adminLoading,
+    isFetched,
+    isError,
+  } = useIsAdmin();
+
+  const isAuthenticated = !!identity;
+
+  // Not authenticated at all — hide
+  if (!isAuthenticated) return null;
+
+  // Still initializing identity or actor — show subtle spinner
+  const isCheckingAdmin = isInitializing || actorFetching || !actor || (adminLoading && !isFetched && !isError);
+
+  if (isCheckingAdmin) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-card border border-border/40 rounded-sm">
+        <Loader2 className="w-4 h-4 text-muted-foreground animate-spin shrink-0" />
+        <p className="text-xs font-mono text-muted-foreground">Checking admin status…</p>
+      </div>
+    );
+  }
+
+  // Once settled — if not admin, hide completely
+  if (isError || isAdmin !== true) return null;
+
+  // Success state after initialization
+  if (initMutation.isSuccess) {
+    return (
+      <div className="flex items-center gap-2 px-4 py-3 bg-neon-green/10 border border-neon-green/30 rounded-sm text-xs font-mono text-neon-green">
+        <CheckCircle className="w-4 h-4 shrink-0" />
+        <span>Seed data initialized — artists and events loaded successfully.</span>
+      </div>
+    );
+  }
 
   const handleInit = () => {
     initMutation.mutate(undefined, {
       onSuccess: () => {
-        toast.success('Seed data initialized — Dave Clarke, Jeff Mills & Richie Hawtin loaded.');
+        toast.success('Seed data initialized — artists and events loaded successfully.');
       },
       onError: (error) => {
         const isUnauthorized =
@@ -24,23 +64,14 @@ export default function AdminInitButton() {
     });
   };
 
-  if (initMutation.isSuccess) {
-    return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-neon-green/10 border border-neon-green/30 rounded-sm text-xs font-mono text-neon-green">
-        <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-        Seed data initialized — Dave Clarke, Jeff Mills &amp; Richie Hawtin loaded.
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-card border border-neon-amber/20 rounded-sm">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-card border border-neon-amber/30 rounded-sm">
       <div className="flex items-start gap-3 flex-1 min-w-0">
         <Database className="w-4 h-4 text-neon-amber shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p className="text-xs font-mono font-semibold text-foreground">
-              No artist data found
+              Initialize artist &amp; event data
             </p>
             <Badge
               variant="outline"
@@ -51,7 +82,7 @@ export default function AdminInitButton() {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Initialize seed data to load Dave Clarke, Jeff Mills, and Richie Hawtin with their upcoming events.
+            Load artists and upcoming techno events into the backend. Click the button to populate the event listings.
           </p>
         </div>
       </div>
@@ -62,13 +93,13 @@ export default function AdminInitButton() {
             {initMutation.error instanceof Error &&
             initMutation.error.message.toLowerCase().includes('unauthorized')
               ? 'Admin only'
-              : 'Failed'}
+              : 'Failed — retry'}
           </div>
         )}
         <button
           onClick={handleInit}
           disabled={initMutation.isPending}
-          className="flex items-center gap-2 px-4 py-2 bg-neon-amber text-background text-xs font-semibold rounded-sm hover:bg-neon-amber-dim transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-neon-amber text-background text-xs font-semibold rounded-sm hover:opacity-90 transition-opacity disabled:opacity-50 whitespace-nowrap"
         >
           {initMutation.isPending ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -1,146 +1,103 @@
-import React, { useEffect } from 'react';
-import { useParams } from '@tanstack/react-router';
-import { useGetArtist, useGetEventsByArtist } from '../hooks/useQueries';
+import { useParams, useNavigate } from '@tanstack/react-router';
+import { useGetArtist, useGetArtistEvents } from '../hooks/useQueries';
 import EventCard from '../components/EventCard';
-import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Link } from '@tanstack/react-router';
+import { ArrowLeft, Music } from 'lucide-react';
 
 export default function ArtistDetailPage() {
-  const { artistId } = useParams({ strict: false }) as { artistId?: string };
+  const { artistId } = useParams({ from: '/artists/$artistId' });
+  const navigate = useNavigate();
 
-  const {
-    data: artist,
-    isLoading: artistLoading,
-    isError: artistError,
-    error: artistErrorObj,
-    refetch: refetchArtist,
-  } = useGetArtist(artistId ?? null);
-
-  const {
-    data: events = [],
-    isLoading: eventsLoading,
-    isError: eventsError,
-    error: eventsErrorObj,
-    refetch: refetchEvents,
-  } = useGetEventsByArtist(artistId ?? null);
+  const { data: artist, isLoading: artistLoading, isError: artistError } = useGetArtist(artistId);
+  const { data: events = [], isLoading: eventsLoading } = useGetArtistEvents(artistId);
 
   const isLoading = artistLoading || eventsLoading;
-  const hasError = artistError || eventsError;
 
-  useEffect(() => {
-    if (artistError && artistErrorObj) {
-      console.error('[ArtistDetailPage] Failed to load artist:', artistErrorObj);
-    }
-    if (eventsError && eventsErrorObj) {
-      console.error('[ArtistDetailPage] Failed to load events:', eventsErrorObj);
-    }
-  }, [artistError, artistErrorObj, eventsError, eventsErrorObj]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-neon-amber border-t-transparent rounded-full animate-spin" />
+          <p className="font-mono text-muted-foreground text-sm">LOADING ARTIST...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleRetry = () => {
-    refetchArtist();
-    refetchEvents();
-  };
+  if (artistError || !artist) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Music className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-30" />
+          <h2 className="font-mono text-xl text-muted-foreground mb-4">ARTIST NOT FOUND</h2>
+          <button
+            onClick={() => navigate({ to: '/artists' })}
+            className="font-mono text-sm text-neon-amber hover:underline flex items-center gap-2 mx-auto"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            BACK TO ARTISTS
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  // Defensive filter: exclude any stale Rostock / Kulturzentrum events
-  const sanitisedEvents = events.filter((event) => {
-    const cityLower = event.city.toLowerCase();
-    const venueLower = event.venue.toLowerCase();
-    if (cityLower.includes('rostock')) return false;
-    if (venueLower.includes('kulturzentrum')) return false;
-    return true;
-  });
-
-  const sortedEvents = [...sanitisedEvents].sort(
-    (a, b) => Number(a.dateTime) - Number(b.dateTime)
-  );
+  const sortedEvents = [...events].sort((a, b) => Number(a.dateTime) - Number(b.dateTime));
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Back link */}
-        <Link
-          to="/artists"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          All Artists
-        </Link>
-
-        {/* Error state */}
-        {hasError && !isLoading && (
-          <div className="mb-8 flex items-start gap-4 p-5 bg-destructive/10 border border-destructive/40 rounded-sm">
-            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-mono font-semibold text-destructive mb-1">
-                Unable to connect to the backend — please try again shortly.
-              </p>
-              <button
-                onClick={handleRetry}
-                className="inline-flex items-center gap-1.5 text-xs font-mono text-neon-amber hover:text-neon-amber/80 transition-colors mt-2"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Retry
-              </button>
-            </div>
+    <div className="min-h-screen bg-background">
+      {/* Artist Header */}
+      <div className="relative">
+        <div className="h-64 w-full overflow-hidden">
+          <img
+            src={artist.imageUrl}
+            alt={artist.name}
+            className="w-full h-full object-cover object-top"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&background=1a1a1a&color=f59e0b&size=256`;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+          <div className="max-w-7xl mx-auto">
+            <button
+              onClick={() => navigate({ to: '/artists' })}
+              className="font-mono text-xs text-muted-foreground hover:text-neon-amber flex items-center gap-1 mb-3 transition-colors"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              BACK TO ARTISTS
+            </button>
+            <h1 className="font-mono text-4xl font-bold text-foreground neon-text-amber">
+              {artist.name.toUpperCase()}
+            </h1>
+            <p className="font-mono text-sm text-muted-foreground mt-1">{artist.genre}</p>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Loading state */}
-        {isLoading && (
-          <div className="space-y-6">
-            <Skeleton className="h-32 w-full rounded" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-48 w-full rounded" />
-              ))}
-            </div>
+      {/* Events Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h2 className="font-mono text-lg font-bold text-foreground mb-4 tracking-wide">
+          UPCOMING EVENTS ({sortedEvents.length})
+        </h2>
+
+        {sortedEvents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Music className="w-12 h-12 text-muted-foreground mb-3 opacity-30" />
+            <p className="font-mono text-muted-foreground">NO UPCOMING EVENTS</p>
           </div>
-        )}
-
-        {/* Artist header */}
-        {!isLoading && artist && (
-          <div className="flex items-start gap-6 mb-10">
-            <img
-              src={artist.imageUrl}
-              alt={artist.name}
-              className="w-24 h-24 rounded object-cover border border-border shrink-0"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  'https://via.placeholder.com/96x96/1a1a1a/666666?text=' +
-                  encodeURIComponent(artist.name.charAt(0));
-              }}
-            />
-            <div>
-              <h1 className="text-3xl font-bold font-mono text-foreground">{artist.name}</h1>
-              <p className="text-sm text-muted-foreground font-mono mt-1">{artist.genre}</p>
-              <p className="text-xs text-muted-foreground font-mono mt-2">
-                {sortedEvents.length} upcoming event{sortedEvents.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Events grid */}
-        {!isLoading && !hasError && sortedEvents.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {sortedEvents.map((event, idx) => (
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedEvents.map((event, index) => (
               <EventCard
-                key={`${event.artistId}-${event.dateTime}-${idx}`}
+                key={`${event.artistId}-${event.dateTime}-${index}`}
                 event={event}
-                artistName={artist?.name ?? event.artistId}
+                artistName={artist.name}
               />
             ))}
           </div>
         )}
-
-        {/* Empty state */}
-        {!isLoading && !hasError && sortedEvents.length === 0 && artist && (
-          <div className="text-center py-20 text-muted-foreground font-mono">
-            No upcoming events for {artist.name}.
-          </div>
-        )}
       </div>
-    </main>
+    </div>
   );
 }

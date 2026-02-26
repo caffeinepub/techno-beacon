@@ -1,137 +1,114 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useToggleTrackedArtist, useGetTrackedArtists } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useToggleTrackedArtist } from '../hooks/useQueries';
+import { Artist } from '../backend';
 import ArtistEventPopup from './ArtistEventPopup';
-import { Star, StarOff, Calendar } from 'lucide-react';
+import { CalendarDays, UserPlus, UserMinus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ArtistCardProps {
-  id: string;
-  name: string;
-  imageUrl: string;
-  genre: string;
+  artist: Artist;
   eventCount: number;
-  isTracked: boolean;
-  onLoginRequired?: () => void;
 }
 
-export default function ArtistCard({
-  id,
-  name,
-  imageUrl,
-  genre,
-  eventCount,
-  isTracked,
-  onLoginRequired,
-}: ArtistCardProps) {
+export default function ArtistCard({ artist, eventCount }: ArtistCardProps) {
   const navigate = useNavigate();
   const { identity } = useInternetIdentity();
-  const toggleMutation = useToggleTrackedArtist();
-  const [showPopup, setShowPopup] = useState(false);
+  const isAuthenticated = !!identity;
 
-  const handleToggle = async (e: React.MouseEvent) => {
+  const { data: trackedArtists = [] } = useGetTrackedArtists();
+  const toggleTracked = useToggleTrackedArtist();
+
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  const isTracked = trackedArtists.includes(artist.id);
+
+  const handleToggleTrack = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!identity) {
-      if (onLoginRequired) {
-        onLoginRequired();
-      } else {
-        toast.error('Please log in to follow artists', {
-          description: 'Use the Login button in the top navigation.',
-        });
-      }
+    if (!isAuthenticated) {
+      toast.error('Please login to follow artists');
       return;
     }
     try {
-      const nowTracked = await toggleMutation.mutateAsync(id);
-      toast.success(nowTracked ? `Following ${name}` : `Unfollowed ${name}`);
+      const nowTracked = await toggleTracked.mutateAsync(artist.id);
+      toast.success(nowTracked ? `Following ${artist.name}` : `Unfollowed ${artist.name}`);
     } catch {
-      toast.error('Failed to update tracking');
+      toast.error('Failed to update artist tracking');
     }
   };
 
-  const handleCardClick = () => {
-    setShowPopup(true);
-  };
-
-  const handleNavigate = (e: React.MouseEvent) => {
+  const handleEventsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate({ to: '/artists/$artistId', params: { artistId: id } });
+    setPopupOpen(true);
   };
 
   return (
     <>
       <div
-        className="bg-card border border-border rounded overflow-hidden cursor-pointer hover:border-primary/60 transition-all group"
-        onClick={handleCardClick}
+        className="bg-card border border-border hover:border-neon-amber transition-all duration-200 cursor-pointer group card-hover overflow-hidden"
+        onClick={() => navigate({ to: '/artists/$artistId', params: { artistId: artist.id } })}
       >
-        {/* Artist image */}
-        <div className="relative h-48 bg-muted overflow-hidden">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl font-bold font-mono text-muted-foreground">
-              {name.charAt(0)}
-            </div>
-          )}
-          {/* Follow button overlay */}
-          <button
-            onClick={handleToggle}
-            disabled={toggleMutation.isPending}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-              isTracked
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-background/80 text-foreground hover:bg-primary hover:text-primary-foreground'
-            } disabled:opacity-50`}
-            title={isTracked ? 'Unfollow' : 'Follow'}
-          >
-            {toggleMutation.isPending ? (
-              <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin block" />
-            ) : isTracked ? (
-              <StarOff className="w-4 h-4" />
-            ) : (
-              <Star className="w-4 h-4" />
-            )}
-          </button>
+        {/* Artist Image */}
+        <div className="relative h-48 overflow-hidden">
+          <img
+            src={artist.imageUrl}
+            alt={artist.name}
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&background=1a1a1a&color=f59e0b&size=256`;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
         </div>
 
-        {/* Card body */}
+        {/* Artist Info */}
         <div className="p-4">
-          <h3 className="font-bold font-mono text-foreground text-lg leading-tight mb-1">
-            {name}
-          </h3>
-          {genre && (
-            <p className="text-xs text-muted-foreground font-mono mb-3">{genre}</p>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1 text-xs text-muted-foreground font-mono">
-              <Calendar className="w-3 h-3" />
-              {eventCount} upcoming event{eventCount !== 1 ? 's' : ''}
-            </span>
+          <h3 className="font-mono text-sm font-bold text-foreground mb-0.5">{artist.name}</h3>
+          <p className="font-mono text-xs text-muted-foreground mb-3">{artist.genre}</p>
+
+          <div className="flex items-center justify-between gap-2">
+            {/* Events Count Button */}
             <button
-              onClick={handleNavigate}
-              className="text-xs font-mono text-primary hover:underline"
+              onClick={handleEventsClick}
+              className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-neon-amber transition-colors"
             >
-              View profile →
+              <CalendarDays className="w-3.5 h-3.5" />
+              <span>{eventCount} EVENT{eventCount !== 1 ? 'S' : ''}</span>
+            </button>
+
+            {/* Follow Button */}
+            <button
+              onClick={handleToggleTrack}
+              disabled={toggleTracked.isPending}
+              className={`flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 border transition-all disabled:opacity-50 ${
+                isTracked
+                  ? 'border-neon-amber text-neon-amber bg-neon-amber/10 hover:bg-neon-amber/20'
+                  : 'border-border text-muted-foreground hover:border-neon-amber hover:text-neon-amber'
+              }`}
+            >
+              {isTracked ? (
+                <>
+                  <UserMinus className="w-3 h-3" />
+                  FOLLOWING
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-3 h-3" />
+                  FOLLOW
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
 
-      {showPopup && (
-        <ArtistEventPopup
-          artistId={id}
-          artistName={name}
-          onClose={() => setShowPopup(false)}
-        />
-      )}
+      <ArtistEventPopup
+        open={popupOpen}
+        onClose={() => setPopupOpen(false)}
+        artistId={artist.id}
+        artistName={artist.name}
+      />
     </>
   );
 }

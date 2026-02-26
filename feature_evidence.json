@@ -1,4 +1,45 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-fix-the-admininitbutton-component-so-that-it-correctly-detects-admin-status-and-renders-the-seed-data-initialization-button-for-confirmed-admins-the-button-must-be-visible-and-functional-on-the-artistspage-for-admin-users-and-clicking-it-must-successfully-call-the-backend-seed-init-function",
+      "featureTitle": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
+      "files": [
+        "frontend/src/components/AdminInitButton.tsx",
+        "frontend/src/pages/ArtistsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-useactor-hook-correctly-signals-readiness-so-that-admin-gated-components-like-admininitbutton-receive-a-valid-actor-reference-in-time-the-hook-must-not-stay-in-a-pending-state-indefinitely-after-authentication-resolves",
+      "featureTitle": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+      "files": [
+        "frontend/src/components/AdminInitButton.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

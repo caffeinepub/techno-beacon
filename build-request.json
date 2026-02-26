@@ -1,77 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Replace Dave Clarke seed data with fully corrected verified event records",
-  "projectName": "Techno Beacon",
+  "title": "Restore AdminInitButton and seed data initialization functionality",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-108",
-      "text": "In the `initializeSeedData` function in `backend/main.mo`, replace all existing event records for Dave Clarke with exactly the following 9 verified events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Live Techno Experience with Dave Clarke' — venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)', Vancouver, Canada, Fri 6 Mar 2026, dateTime ISO '2026-03-06T22:00:00Z'; (2) eventTitle 'Dave Clarke in Toronto' — venue '821 Runnymede Rd (or 131 McCormack St)', Toronto, Canada, Sat 7 Mar 2026, dateTime ISO '2026-03-07T22:00:00Z'; (3) eventTitle 'WONDER RAVE' — venue 'TBA East', Nancy, France, Fri 13 Mar 2026, dateTime ISO '2026-03-13T22:00:00Z'; (4) eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — venue 'Mia Mao', Paris, France, Sat 14 Mar 2026, dateTime ISO '2026-03-14T22:00:00Z'; (5) eventTitle 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — venue 'fabric', London, UK, Sat 4 Apr 2026, dateTime ISO '2026-04-04T22:00:00Z'; (6) eventTitle 'City Wall x Dave Clarke' — venue 'Concorde 2', Brighton, UK, Fri 15 May 2026, dateTime ISO '2026-05-15T22:00:00Z'; (7) eventTitle 'Ostend Beach Festival 2026' — venue 'Klein Strand', Ostend, Belgium, Fri 10 Jul 2026, dateTime ISO '2026-07-10T18:00:00Z'; (8) eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck' — venue 'District Cardiff', Cardiff, UK, Fri 24 Jul 2026, dateTime ISO '2026-07-24T22:00:00Z'; (9) eventTitle 'Iceland Eclipse' — venue 'Hellissandur', Hellissandur, Iceland, Thu 12 Aug 2027, dateTime ISO '2027-08-12T20:00:00Z'. All 9 events must be associated with Dave Clarke's artist ID. All other artist event datasets (Jeff Mills 16 events, Richie Hawtin 1 event, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so data is present on every deploy without manual intervention. After deploy, `getEventsByArtist` queried with Dave Clarke's artist ID must return all 9 events with the correct venue strings, dateTimes, and event titles.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "Fri, 6 Mar - TBA (or Industrial 236 Warehouse / Vantek Warehouse) - Vancouver",
-          "Sat, 7 Mar - 821 Runnymede Rd (or 131 McCormack St) - Toronto",
-          "Fri, 13 Mar - TBA - East (likely Nancy, France; event: WONDER RAVE)",
-          "Sat, 14 Mar - Mia Mao - Paris (OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke)",
-          "Sat, 4 Apr - fabric - London",
-          "Fri, 15 May - Concorde 2 - Brighton (City Wall x Dave Clarke)",
-          "Fri, 10 Jul - Klein Strand - Ostend / Belgium (Ostend Beach Festival 2026; multi-day fest)",
-          "Fri, 24 Jul - District Cardiff - Cardiff (Luvmuzik presents Dave Clarke & Gary Beck)",
-          "Thu, 12 Aug 2027 - Hellissandur - Iceland (Iceland Eclipse; note: this is 2027, but included as it's listed in your data)"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`getEventsByArtist` called with Dave Clarke's artist ID returns exactly 9 events.",
-        "Vancouver event has venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'.",
-        "Toronto event has venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'.",
-        "Nancy event has eventTitle 'WONDER RAVE', venue 'TBA East', and dateTime '2026-03-13T22:00:00Z'.",
-        "Paris event has eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke', venue 'Mia Mao', and dateTime '2026-03-14T22:00:00Z'.",
-        "London event has venue 'fabric' and dateTime '2026-04-04T22:00:00Z'.",
-        "Brighton event has eventTitle 'City Wall x Dave Clarke', venue 'Concorde 2', and dateTime '2026-05-15T22:00:00Z'.",
-        "Ostend event has eventTitle 'Ostend Beach Festival 2026', venue 'Klein Strand', and dateTime '2026-07-10T18:00:00Z'.",
-        "Cardiff event has eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck', venue 'District Cardiff', and dateTime '2026-07-24T22:00:00Z'.",
-        "Iceland event has eventTitle 'Iceland Eclipse', venue 'Hellissandur', city 'Hellissandur', country 'Iceland', and dateTime '2027-08-12T20:00:00Z'.",
-        "All 9 events have sourceLabel 'RA' and eventUrl 'https://ra.co'.",
-        "No previously incorrect or stale Dave Clarke events remain in the backend.",
-        "All other artists' event datasets are unchanged.",
-        "After deploy, `getArtists` returns all 8 artists without manual admin button click."
-      ]
-    },
-    {
-      "id": "REQ-109",
-      "text": "In `frontend/src/lib/eventIdLookup.ts`, update all entries for Dave Clarke's events to match the corrected venue strings and dateTimes from REQ-108. Specifically: (1) update or create the entry for the Vancouver event with venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'; (2) update or create the entry for the Toronto event with venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'; (3) update or create the entry for the Nancy WONDER RAVE event with dateTime '2026-03-13T22:00:00Z'; (4) update or create the entry for the Paris OFF THE GRID event with dateTime '2026-03-14T22:00:00Z'; (5) confirm the Brighton Concorde 2 entry reflects dateTime '2026-05-15T22:00:00Z'; (6) confirm the Cardiff District Cardiff entry reflects dateTime '2026-07-24T22:00:00Z'; (7) confirm the Ostend Klein Strand entry reflects dateTime '2026-07-10T18:00:00Z'; (8) confirm the Iceland Hellissandur entry reflects dateTime '2027-08-12T20:00:00Z'. Remove or overwrite any existing lookup entries whose composite keys no longer correspond to a live backend event ID due to venue or dateTime changes, so that the Add to Radar functionality continues to work correctly using the exact backend event IDs.",
+      "id": "REQ-1",
+      "text": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-4"
         ],
         "quotes": [
-          "its still wrong, this is the correct data for dave clarke update it, get rid of all wrong data"
+          "its not, its the same, initialize data not there ect"
         ]
       },
       "acceptanceCriteria": [
-        "Each of the 9 Dave Clarke events has a corresponding entry in the lookup table matching the exact backend event ID.",
-        "No stale or incorrect composite keys remain for Dave Clarke events.",
-        "Add to Radar button works correctly for all 9 Dave Clarke events after the update.",
-        "Lookup entries for all other artists are unchanged."
+        "Admin user sees the 'Initialize Data' button on the ArtistsPage",
+        "Clicking the button triggers the backend seed data initialization",
+        "The spinner does not run indefinitely — it resolves or times out within 5 seconds",
+        "Non-admin users do not see the button"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "its not, its the same, initialize data not there ect"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useActor resolves to a valid actor within a reasonable time after login",
+        "AdminInitButton receives the actor and proceeds past the loading guard",
+        "Actor readiness state is correctly propagated to consuming components"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Verify the backend initializeSeedData (or equivalent) function is callable and returns successfully when invoked by an admin principal. Ensure the admin access control check in the backend correctly identifies the admin caller.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "initialize data not there ect"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin principal can call the seed/init function without an access-denied error",
+        "Seed data (artists and events) is persisted to state after initialization",
+        "Non-admin principals receive an error when attempting to call the init function"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any other artist's event data (Jeff Mills 16 events, Richie Hawtin 1 event, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood).",
-    "The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally.",
-    "The stable `radarEvents` HashMap must not be wiped by the `postupgrade` hook.",
-    "Do not modify any immutable frontend paths."
+    "Do not modify files under frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts directly — propose safe alternatives if hook behavior needs adjustment",
+    "All Motoko logic must remain in the single backend/main.mo actor"
   ],
   "nonGoals": [
-    "Adding new artists beyond the existing 8.",
-    "Changing any other artist's event records.",
-    "Modifying the UI layout or visual theme.",
-    "Updating the IATA lookup table (all Dave Clarke cities are already covered)."
+    "Adding new features or pages",
+    "Changing the visual design or theme",
+    "Modifying authentication flow beyond what is needed to fix actor readiness"
   ],
   "imageRequirements": {
     "required": [],

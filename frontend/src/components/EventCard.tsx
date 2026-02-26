@@ -1,169 +1,160 @@
-import React, { useState } from 'react';
-import { Calendar, MapPin, Loader2, Radio } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAddEventToRadar, useRemoveEventFromRadar, useRadarEvents } from '../hooks/useQueries';
+import { useState } from 'react';
+import { useAddEventToRadar, useRemoveEventFromRadar, useGetRadarEvents } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import type { Event } from '../backend';
+import { Event } from '../backend';
 import SourceBadge from './SourceBadge';
 import TripPlannerModal from './TripPlannerModal';
-import { getBackendEventId } from '../lib/eventIdLookup';
+import { Radar, MapPin, Calendar, ExternalLink } from 'lucide-react';
 import { buildTicketSearchUrl } from '../utils/ticketSearch';
+import { getEventId } from '../lib/eventIdLookup';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: Event;
   artistName: string;
 }
 
+function formatDate(dateTime: bigint): string {
+  const ms = Number(dateTime) / 1_000_000;
+  const date = new Date(ms);
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatTime(dateTime: bigint): string {
+  const ms = Number(dateTime) / 1_000_000;
+  const date = new Date(ms);
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
 export default function EventCard({ event, artistName }: EventCardProps) {
   const { identity } = useInternetIdentity();
-  const { data: radarEvents } = useRadarEvents();
+  const isAuthenticated = !!identity;
+
+  const { data: radarEvents = [] } = useGetRadarEvents();
   const addToRadar = useAddEventToRadar();
   const removeFromRadar = useRemoveEventFromRadar();
+
   const [tripPlannerOpen, setTripPlannerOpen] = useState(false);
 
-  const backendEventId = getBackendEventId(event.artistId, event.dateTime);
-
-  // Check if this event is on radar by matching on artistId + dateTime
-  const isOnRadar = radarEvents?.some(
+  const eventId = getEventId(event);
+  const isOnRadar = radarEvents.some(
     (e) => e.artistId === event.artistId && e.dateTime === event.dateTime
-  ) ?? false;
+  );
 
-  const formatDate = (dateTime: bigint) => {
-    const ms = Number(dateTime) / 1_000_000;
-    return new Date(ms).toLocaleDateString('en-GB', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const formatTime = (dateTime: bigint) => {
-    const ms = Number(dateTime) / 1_000_000;
-    return new Date(ms).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const handleToggleRadar = async () => {
-    if (!identity) {
-      toast.error('Login required', {
-        description: 'Please log in to save events to your radar.',
-      });
+  const handleRadarToggle = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to save events to your radar');
       return;
     }
-
-    if (!backendEventId) {
-      console.error('[EventCard] Could not resolve backend event ID for event:', {
-        artistId: event.artistId,
-        dateTime: event.dateTime.toString(),
-        eventTitle: event.eventTitle,
-      });
-      toast.error('Could not save event', {
-        description: 'This event could not be identified. Please try again.',
-      });
+    if (!eventId) {
+      toast.error('Event ID not found');
       return;
     }
-
     try {
       if (isOnRadar) {
-        await removeFromRadar.mutateAsync(backendEventId);
-        toast.success('Removed from Radar', {
-          description: `${event.eventTitle} removed from your radar.`,
-        });
+        await removeFromRadar.mutateAsync(eventId);
+        toast.success('Removed from radar');
       } else {
-        await addToRadar.mutateAsync(backendEventId);
-        toast.success('Added to Radar', {
-          description: `${event.eventTitle} saved to your radar.`,
-        });
+        await addToRadar.mutateAsync(eventId);
+        toast.success('Added to radar');
       }
-    } catch (err: unknown) {
-      const error = err as Error;
-      console.error('[EventCard] Radar toggle error:', error);
-      const isNotFound = error.message?.toLowerCase().includes('not found');
-      toast.error('Could not save event', {
-        description: isNotFound
-          ? 'Event not found — it may have been removed. Please refresh and try again.'
-          : 'Something went wrong. Please try again.',
-      });
+    } catch {
+      toast.error('Failed to update radar');
     }
   };
 
-  const isLoading = addToRadar.isPending || removeFromRadar.isPending;
+  const diceUrl = buildTicketSearchUrl('dice', artistName);
+  const songkickUrl = buildTicketSearchUrl('songkick', artistName);
 
   return (
-    <div className="card-industrial p-4 flex flex-col gap-3 group">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-mono text-sm font-semibold text-foreground leading-tight line-clamp-2">
-            {event.eventTitle}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5 font-mono">{artistName}</p>
+    <>
+      <div className="bg-card border border-border hover:border-neon-amber transition-all duration-200 p-4 flex flex-col gap-3 group card-hover">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-mono text-sm font-bold text-foreground leading-tight line-clamp-2">
+              {event.eventTitle}
+            </h3>
+            <p className="font-mono text-xs text-neon-amber mt-0.5">{artistName}</p>
+          </div>
+          <button
+            onClick={handleRadarToggle}
+            disabled={addToRadar.isPending || removeFromRadar.isPending}
+            className={`shrink-0 p-1.5 border transition-all ${
+              isOnRadar
+                ? 'border-neon-amber text-neon-amber bg-neon-amber/10'
+                : 'border-border text-muted-foreground hover:border-neon-amber hover:text-neon-amber'
+            } disabled:opacity-50`}
+            title={isOnRadar ? 'Remove from radar' : 'Add to radar'}
+          >
+            <Radar className="w-4 h-4" />
+          </button>
         </div>
-        <SourceBadge source={event.sourceLabel} />
-      </div>
 
-      {/* Details */}
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="w-3.5 h-3.5 shrink-0 text-accent" />
-          <span className="font-mono">
-            {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
-          </span>
+        {/* Event Details */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="w-3 h-3 shrink-0" />
+            <span className="font-mono text-xs truncate">
+              {event.venue}, {event.city}, {event.country}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span className="font-mono text-xs">
+              {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="w-3.5 h-3.5 shrink-0 text-accent" />
-          <span className="font-mono truncate">
-            {event.venue !== 'TBA' ? `${event.venue}, ` : ''}{event.city}, {event.country}
-          </span>
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 mt-auto pt-1 flex-wrap">
-        <button
-          onClick={handleToggleRadar}
-          disabled={isLoading}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded transition-all ${
-            isOnRadar
-              ? 'bg-accent text-accent-foreground hover:bg-accent/80'
-              : 'border border-border text-muted-foreground hover:border-accent hover:text-accent'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {isLoading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Radio className="w-3.5 h-3.5" />
+        {/* Source Badge */}
+        <div className="flex items-center gap-2">
+          <SourceBadge source={event.sourceLabel} />
+          {event.eventUrl && event.eventUrl !== 'https://ra.co' && (
+            <a
+              href={event.eventUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs text-muted-foreground hover:text-neon-amber flex items-center gap-1 transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" />
+              VIEW
+            </a>
           )}
-          {isOnRadar ? '📡 On Radar' : 'Add to Radar'}
-        </button>
+        </div>
 
-        <button
-          onClick={() => setTripPlannerOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium border border-border text-muted-foreground hover:border-accent hover:text-accent rounded transition-all"
-        >
-          ✈ Plan Trip
-        </button>
-
-        <a
-          href={buildTicketSearchUrl('dice', artistName)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
-        >
-          🎟 Dice
-        </a>
-
-        <a
-          href={buildTicketSearchUrl('songkick', artistName)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
-        >
-          🎟 Songkick
-        </a>
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2 mt-auto pt-2 border-t border-border">
+          <button
+            onClick={() => setTripPlannerOpen(true)}
+            className="w-full font-mono text-xs py-2 border border-border text-muted-foreground hover:border-neon-amber hover:text-neon-amber transition-all"
+          >
+            ✈ PLAN TRIP
+          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <a
+              href={diceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs py-2 border border-border text-muted-foreground hover:border-neon-amber hover:text-neon-amber transition-all text-center"
+            >
+              🎟 DICE
+            </a>
+            <a
+              href={songkickUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs py-2 border border-border text-muted-foreground hover:border-neon-amber hover:text-neon-amber transition-all text-center"
+            >
+              🎟 SONGKICK
+            </a>
+          </div>
+        </div>
       </div>
 
       {tripPlannerOpen && (
@@ -173,6 +164,6 @@ export default function EventCard({ event, artistName }: EventCardProps) {
           onClose={() => setTripPlannerOpen(false)}
         />
       )}
-    </div>
+    </>
   );
 }

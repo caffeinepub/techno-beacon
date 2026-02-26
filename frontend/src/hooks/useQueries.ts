@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { Event, Artist, UserProfile } from '../backend';
+import { Event, Artist } from '../backend';
 
 export function useGetAllEvents() {
   const { actor, isFetching } = useActor();
@@ -13,19 +13,12 @@ export function useGetAllEvents() {
       return actor.getAllEvents();
     },
     enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetEventsByArtist(artistId: string | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<Event[]>({
-    queryKey: ['events', 'artist', artistId],
-    queryFn: async () => {
-      if (!actor || !artistId) return [];
-      return actor.getEventsByArtist(artistId);
+    staleTime: 0,
+    retry: (failureCount) => {
+      if (failureCount >= 3) return false;
+      return true;
     },
-    enabled: !!actor && !isFetching && !!artistId,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
   });
 }
 
@@ -39,61 +32,75 @@ export function useGetArtists() {
       return actor.getArtists();
     },
     enabled: !!actor && !isFetching,
+    staleTime: 0,
+    retry: (failureCount) => {
+      if (failureCount >= 3) return false;
+      return true;
+    },
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
   });
 }
 
-export function useGetArtist(artistId: string | null) {
+export function useGetArtist(artistId: string) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Artist | null>({
     queryKey: ['artist', artistId],
     queryFn: async () => {
-      if (!actor || !artistId) return null;
+      if (!actor) return null;
       return actor.getArtist(artistId);
     },
     enabled: !!actor && !isFetching && !!artistId,
   });
 }
 
-export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
+export function useGetArtistEvents(artistId: string) {
+  const { actor, isFetching } = useActor();
 
-  const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile'],
+  return useQuery<Event[]>({
+    queryKey: ['events', 'artist', artistId],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      if (!actor) return [];
+      return actor.getEventsByArtist(artistId);
     },
-    enabled: !!actor && !actorFetching && !!identity,
-    retry: false,
+    enabled: !!actor && !isFetching && !!artistId,
   });
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
 }
 
-export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
+export function useGetRadarEvents() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
 
-  return useMutation({
-    mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+  return useQuery<Event[]>({
+    queryKey: ['radarEvents'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getRadarEvents();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    enabled: !!actor && !isFetching && isAuthenticated,
+  });
+}
+
+export function useGetTrackedArtists() {
+  const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
+  return useQuery<string[]>({
+    queryKey: ['trackedArtists'],
+    queryFn: async () => {
+      if (!actor) return [];
+      if (!identity) return [];
+      const principal = identity.getPrincipal();
+      return actor.getTrackedArtists(principal);
     },
+    enabled: !!actor && !isFetching && isAuthenticated,
   });
 }
 
 export function useToggleTrackedArtist() {
   const { actor } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -102,57 +109,8 @@ export function useToggleTrackedArtist() {
       return actor.toggleTrackedArtist(artistId);
     },
     onSuccess: () => {
-      if (identity) {
-        queryClient.invalidateQueries({ queryKey: ['trackedArtists'] });
-        queryClient.invalidateQueries({ queryKey: ['trackedArtistEvents'] });
-        queryClient.invalidateQueries({ queryKey: ['radarSummary'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['trackedArtists'] });
     },
-  });
-}
-
-export function useGetTrackedArtists() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<string[]>({
-    queryKey: ['trackedArtists'],
-    queryFn: async () => {
-      if (!actor || !identity) return [];
-      const principal = identity.getPrincipal();
-      return actor.getTrackedArtists(principal);
-    },
-    enabled: !!actor && !isFetching && !!identity,
-  });
-}
-
-export function useGetTrackedArtistEvents() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<Event[]>({
-    queryKey: ['trackedArtistEvents'],
-    queryFn: async () => {
-      if (!actor || !identity) return [];
-      const principal = identity.getPrincipal();
-      return actor.getTrackedArtistEvents(principal);
-    },
-    enabled: !!actor && !isFetching && !!identity,
-  });
-}
-
-export function useRadarEvents() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<Event[]>({
-    queryKey: ['radarEvents'],
-    queryFn: async () => {
-      if (!actor || !identity) return [];
-      return actor.getRadarEvents();
-    },
-    enabled: !!actor && !isFetching && !!identity,
-    staleTime: 0,
   });
 }
 
@@ -164,17 +122,9 @@ export function useAddEventToRadar() {
     mutationFn: async (eventId: string) => {
       if (!actor) throw new Error('Actor not available');
       const result = await actor.addEventToRadar(eventId);
-      console.log('[addEventToRadar] result:', result);
-
       if (result.__kind__ === 'eventNotFound') {
-        console.error('[addEventToRadar] Event not found in backend:', result.eventNotFound);
-        throw new Error(`Event not found: ${result.eventNotFound}`);
+        throw new Error(result.eventNotFound);
       }
-      if (result.__kind__ === 'unauthorized') {
-        console.error('[addEventToRadar] Unauthorized');
-        throw new Error('Unauthorized: Please log in to save events to your radar.');
-      }
-      // alreadyExists is treated as success (idempotent)
       return result;
     },
     onSuccess: () => {
@@ -190,33 +140,11 @@ export function useRemoveEventFromRadar() {
   return useMutation({
     mutationFn: async (eventId: string) => {
       if (!actor) throw new Error('Actor not available');
-      const result = await actor.removeEventFromRadar(eventId);
-      console.log('[removeEventFromRadar] result:', result);
-
-      if (result.__kind__ === 'unauthorized') {
-        console.error('[removeEventFromRadar] Unauthorized');
-        throw new Error('Unauthorized: Please log in to manage your radar.');
-      }
-      return result;
+      return actor.removeEventFromRadar(eventId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['radarEvents'] });
     },
-  });
-}
-
-export function useGetMyRadarSummary() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  return useQuery<[bigint, bigint]>({
-    queryKey: ['radarSummary'],
-    queryFn: async () => {
-      if (!actor || !identity) return [BigInt(0), BigInt(0)];
-      const principal = identity.getPrincipal();
-      return actor.getMyRadarSummary(principal);
-    },
-    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
@@ -232,6 +160,78 @@ export function useInitializeSeedData() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['artists'] });
+      queryClient.invalidateQueries({ queryKey: ['events', 'artist'] });
     },
   });
+}
+
+export function useGetCallerUserProfile() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
+  const query = useQuery({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching && isAuthenticated,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useSaveCallerUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: { name: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveCallerUserProfile(profile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useIsAdmin() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity, isInitializing } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
+  const query = useQuery<boolean>({
+    queryKey: ['isAdmin', identity?.getPrincipal().toString()],
+    queryFn: async () => {
+      if (!actor) return false;
+      try {
+        const result = await actor.isAdmin();
+        return result;
+      } catch {
+        return false;
+      }
+    },
+    // Only run when we have a fully authenticated actor (not anonymous)
+    enabled: !!actor && !actorFetching && isAuthenticated && !isInitializing,
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // isFetched is only true once the actor is ready AND the query has completed
+  const isFetched = !!actor && !actorFetching && !isInitializing && query.isFetched;
+
+  return {
+    ...query,
+    data: query.isError ? false : query.data,
+    isLoading: isInitializing || actorFetching || (!isFetched && !query.isError && isAuthenticated),
+    isFetched,
+  };
 }

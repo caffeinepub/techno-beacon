@@ -1,30 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useGetArtists, useGetAllEvents, useGetTrackedArtists } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useState, useMemo } from 'react';
+import { useGetAllEvents, useGetArtists } from '../hooks/useQueries';
 import EventCard from '../components/EventCard';
-import EventFilters, { FilterState } from '../components/EventFilters';
-import ArtistEventPopup from '../components/ArtistEventPopup';
+import EventFilters from '../components/EventFilters';
 import AdminInitButton from '../components/AdminInitButton';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Radio } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+
+interface FilterState {
+  artistName: string;
+  city: string;
+  dateFrom: string;
+  dateTo: string;
+}
 
 export default function DiscoverPage() {
+  const { data: events = [], isLoading: eventsLoading } = useGetAllEvents();
+  const { data: artists = [], isLoading: artistsLoading } = useGetArtists();
   const { identity } = useInternetIdentity();
-
-  const {
-    data: artists = [],
-    isLoading: artistsLoading,
-    isError: artistsError,
-    refetch: refetchArtists,
-  } = useGetArtists();
-
-  const {
-    data: allEvents = [],
-    isLoading: eventsLoading,
-    isError: eventsError,
-    error: eventsErrorObj,
-    refetch: refetchEvents,
-  } = useGetAllEvents();
+  const isAuthenticated = !!identity;
 
   const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
@@ -34,206 +27,146 @@ export default function DiscoverPage() {
     dateTo: '',
   });
 
-  const isLoading = artistsLoading || eventsLoading;
-  const hasError = artistsError || eventsError;
+  const isLoading = eventsLoading || artistsLoading;
 
-  useEffect(() => {
-    if (eventsError && eventsErrorObj) {
-      console.error('[DiscoverPage] Failed to load events:', eventsErrorObj);
+  const filteredEvents = useMemo(() => {
+    let result = [...events];
+
+    if (selectedArtistId) {
+      result = result.filter((e) => e.artistId === selectedArtistId);
     }
-  }, [eventsError, eventsErrorObj]);
 
-  const handleRetry = () => {
-    refetchArtists();
-    refetchEvents();
-  };
-
-  // Defensive filter: exclude any stale Rostock / Kulturzentrum events that may
-  // still be present in the canister's stable memory from a previous seed run.
-  const sanitisedEvents = allEvents.filter((event) => {
-    const cityLower = event.city.toLowerCase();
-    const venueLower = event.venue.toLowerCase();
-    if (cityLower.includes('rostock')) return false;
-    if (venueLower.includes('kulturzentrum')) return false;
-    return true;
-  });
-
-  const filteredEvents = sanitisedEvents.filter((event) => {
-    if (selectedArtistId && event.artistId !== selectedArtistId) return false;
-
-    if (filters.artistName) {
-      const artist = artists.find((a) => a.id === event.artistId);
-      const artistName = artist?.name ?? event.artistId;
-      if (!artistName.toLowerCase().includes(filters.artistName.toLowerCase())) return false;
+    if (filters.artistName.trim()) {
+      const name = filters.artistName.toLowerCase();
+      result = result.filter((e) => {
+        const artist = artists.find((a) => a.id === e.artistId);
+        return artist?.name.toLowerCase().includes(name);
+      });
     }
-    if (filters.city && !event.city.toLowerCase().includes(filters.city.toLowerCase())) {
-      return false;
+
+    if (filters.city.trim()) {
+      const city = filters.city.toLowerCase();
+      result = result.filter((e) => e.city.toLowerCase().includes(city));
     }
+
     if (filters.dateFrom) {
       const from = new Date(filters.dateFrom).getTime();
-      const eventMs = Number(event.dateTime) / 1_000_000;
-      if (eventMs < from) return false;
+      result = result.filter((e) => Number(e.dateTime) / 1_000_000 >= from);
     }
+
     if (filters.dateTo) {
       const to = new Date(filters.dateTo).getTime() + 86400000;
-      const eventMs = Number(event.dateTime) / 1_000_000;
-      if (eventMs > to) return false;
+      result = result.filter((e) => Number(e.dateTime) / 1_000_000 <= to);
     }
-    return true;
-  });
 
-  const sortedEvents = [...filteredEvents].sort(
-    (a, b) => Number(a.dateTime) - Number(b.dateTime)
-  );
+    result.sort((a, b) => Number(a.dateTime) - Number(b.dateTime));
+    return result;
+  }, [events, artists, selectedArtistId, filters]);
 
-  const showAdminButton =
-    !isLoading &&
-    !hasError &&
-    identity &&
-    (artists.length === 0 || (artists.length > 0 && allEvents.length === 0));
-
-  const selectedArtist = selectedArtistId
-    ? artists.find((a) => a.id === selectedArtistId)
-    : null;
+  const hasArtists = artists.length > 0;
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       {/* Hero Banner */}
-      <div className="relative w-full h-[320px] sm:h-[420px] overflow-hidden">
+      <div className="relative w-full overflow-hidden" style={{ height: '320px' }}>
         <img
           src="/assets/generated/techno-beacon-hero.dim_1440x520.png"
           alt="Techno Beacon"
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
-        <div className="absolute bottom-8 left-0 right-0 px-4 sm:px-8">
-          <h1 className="text-4xl sm:text-6xl font-bold font-mono text-foreground tracking-tight drop-shadow-lg">
-            DISCOVER
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+          <h1 className="font-mono text-4xl md:text-5xl font-bold text-foreground neon-text-amber mb-3 tracking-tight">
+            DISCOVER EVENTS
           </h1>
-          <p className="text-muted-foreground text-lg mt-1">
-            Upcoming techno events worldwide
+          <p className="text-muted-foreground text-lg max-w-xl font-mono">
+            Track your favourite techno artists and never miss a show
           </p>
+          {isAuthenticated && (
+            <div className="mt-4">
+              <AdminInitButton />
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Admin re-seed button */}
-        {showAdminButton && (
-          <div className="mb-8">
-            <AdminInitButton />
-          </div>
-        )}
-
-        {/* Error state */}
-        {hasError && !isLoading && (
-          <div className="mb-8 flex items-start gap-4 p-5 bg-destructive/10 border border-destructive/40 rounded-sm">
-            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-mono font-semibold text-destructive mb-1">
-                Unable to connect to the backend
-              </p>
-              <p className="text-sm text-muted-foreground mb-3">
-                Event data could not be loaded. The backend may be temporarily unavailable — please try again shortly.
-              </p>
-              <button
-                onClick={handleRetry}
-                className="inline-flex items-center gap-1.5 text-xs font-mono text-neon-amber hover:text-neon-amber/80 transition-colors"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Artist roster chips */}
-        {!hasError && artists.length > 0 && (
-          <div className="mb-8">
-            <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest mb-3">
-              Artists
-            </p>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Artist Filter Chips */}
+        {hasArtists && (
+          <div className="mb-6">
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setSelectedArtistId(null)}
-                className={`px-3 py-1 text-sm font-mono border rounded transition-colors ${
+                className={`px-4 py-1.5 rounded-none font-mono text-sm border transition-all ${
                   selectedArtistId === null
-                    ? 'border-neon-amber text-neon-amber bg-neon-amber/10'
-                    : 'border-border hover:border-primary hover:text-primary'
+                    ? 'bg-neon-amber text-background border-neon-amber'
+                    : 'bg-transparent text-muted-foreground border-border hover:border-neon-amber hover:text-neon-amber'
                 }`}
               >
-                All
+                ALL
               </button>
               {artists.map((artist) => (
                 <button
                   key={artist.id}
-                  onClick={() =>
-                    setSelectedArtistId(artist.id === selectedArtistId ? null : artist.id)
-                  }
-                  className={`px-3 py-1 text-sm font-mono border rounded transition-colors ${
+                  onClick={() => setSelectedArtistId(artist.id === selectedArtistId ? null : artist.id)}
+                  className={`px-4 py-1.5 rounded-none font-mono text-sm border transition-all ${
                     selectedArtistId === artist.id
-                      ? 'border-neon-amber text-neon-amber bg-neon-amber/10'
-                      : 'border-border hover:border-primary hover:text-primary'
+                      ? 'bg-neon-amber text-background border-neon-amber'
+                      : 'bg-transparent text-muted-foreground border-border hover:border-neon-amber hover:text-neon-amber'
                   }`}
                 >
-                  {artist.name}
+                  {artist.name.toUpperCase()}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Filters */}
-        <div className="mb-8">
-          <EventFilters filters={filters} onChange={setFilters} />
-        </div>
+        {/* Event Filters */}
+        {hasArtists && (
+          <EventFilters filters={filters} onFiltersChange={setFilters} />
+        )}
 
-        {/* Loading skeletons */}
+        {/* Loading State */}
         {isLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-48 w-full rounded" />
+          <div className="flex items-center justify-center py-20">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-8 h-8 border-2 border-neon-amber border-t-transparent rounded-full animate-spin" />
+              <p className="font-mono text-muted-foreground text-sm">LOADING EVENTS...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Events Grid */}
+        {!isLoading && filteredEvents.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredEvents.map((event, index) => (
+              <EventCard
+                key={`${event.artistId}-${event.dateTime}-${index}`}
+                event={event}
+                artistName={artists.find((a) => a.id === event.artistId)?.name ?? event.artistId}
+              />
             ))}
           </div>
         )}
 
-        {/* Empty state */}
-        {!isLoading && !hasError && sortedEvents.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground font-mono">
-            No upcoming events found.
-          </div>
-        )}
-
-        {/* Event grid */}
-        {!isLoading && !hasError && sortedEvents.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedEvents.map((event, idx) => {
-              const artist = artists.find((a) => a.id === event.artistId);
-              const artistName =
-                artist?.name ??
-                event.artistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-              return (
-                <EventCard
-                  key={`${event.artistId}-${event.dateTime}-${idx}`}
-                  event={event}
-                  artistName={artistName}
-                />
-              );
-            })}
+        {/* Empty State */}
+        {!isLoading && filteredEvents.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Radio className="w-16 h-16 text-muted-foreground mb-4 opacity-30" />
+            <h3 className="font-mono text-xl text-muted-foreground mb-2">NO EVENTS AVAILABLE YET.</h3>
+            {isAuthenticated ? (
+              <p className="text-muted-foreground text-sm max-w-md">
+                Use the <span className="text-neon-amber font-mono">Initialize Data</span> button above to load event data.
+              </p>
+            ) : (
+              <p className="text-muted-foreground text-sm max-w-md">
+                Check back soon for upcoming techno events.
+              </p>
+            )}
           </div>
         )}
       </div>
-
-      {/* Artist event popup */}
-      {selectedArtistId && (
-        <ArtistEventPopup
-          artistId={selectedArtistId}
-          artistName={
-            selectedArtist?.name ??
-            selectedArtistId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-          }
-          onClose={() => setSelectedArtistId(null)}
-        />
-      )}
-    </main>
+    </div>
   );
 }

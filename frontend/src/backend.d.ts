@@ -63,6 +63,7 @@ export interface backendInterface {
     getTrackedArtists(user: Principal): Promise<Array<string>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     initializeSeedData(): Promise<void>;
+    isAdmin(): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     removeEventFromRadar(eventId: string): Promise<Result>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

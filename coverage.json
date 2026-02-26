@@ -1,38 +1,58 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T20:17:10.801Z",
+  "generatedAt": "2026-02-26T22:47:23.898Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 0,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-108",
-        "summary": "In the `initializeSeedData` function in `backend/main.mo`, replace all existing event records for Dave Clarke with exactly the following 9 verified events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Live Techno Experience with Dave Clarke' — venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)', Vancouver, Canada, Fri 6 Mar 2026, dateTime ISO '2026-03-06T22:00:00Z'; (2) eventTitle 'Dave Clarke in Toronto' — venue '821 Runnymede Rd (or 131 McCormack St)', Toronto, Canada, Sat 7 Mar 2026, dateTime ISO '2026-03-07T22:00:00Z'; (3) eventTitle 'WONDER RAVE' — venue 'TBA East', Nancy, France, Fri 13 Mar 2026, dateTime ISO '2026-03-13T22:00:00Z'; (4) eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — venue 'Mia Mao', Paris, France, Sat 14 Mar 2026, dateTime ISO '2026-03-14T22:00:00Z'; (5) eventTitle 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — venue 'fabric', London, UK, Sat 4 Apr 2026, dateTime ISO '2026-04-04T22:00:00Z'; (6) eventTitle 'City Wall x Dave Clarke' — venue 'Concorde 2', Brighton, UK, Fri 15 May 2026, dateTime ISO '2026-05-15T22:00:00Z'; (7) eventTitle 'Ostend Beach Festival 2026' — venue 'Klein Strand', Ostend, Belgium, Fri 10 Jul 2026, dateTime ISO '2026-07-10T18:00:00Z'; (8) eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck' — venue 'District Cardiff', Cardiff, UK, Fri 24 Jul 2026, dateTime ISO '2026-07-24T22:00:00Z'; (9) eventTitle 'Iceland Eclipse' — venue 'Hellissandur', Hellissandur, Iceland, Thu 12 Aug 2027, dateTime ISO '2027-08-12T20:00:00Z'. All 9 events must be associated with Dave Clarke's artist ID. All other artist event datasets (Jeff Mills 16 events, Richie Hawtin 1 event, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so data is present on every deploy without manual intervention. After deploy, `getEventsByArtist` queried with Dave Clarke's artist ID must return all 9 events with the correct venue strings, dateTimes, and event titles.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-1",
+        "summary": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins. The button must be visible and functional on the ArtistsPage for admin users, and clicking it must successfully call the backend seed/init function.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/pages/ArtistsPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminInitButton.tsx",
+          "frontend/src/pages/ArtistsPage.tsx"
+        ]
       },
       {
-        "id": "REQ-109",
-        "summary": "In `frontend/src/lib/eventIdLookup.ts`, update all entries for Dave Clarke's events to match the corrected venue strings and dateTimes from REQ-108. Specifically: (1) update or create the entry for the Vancouver event with venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'; (2) update or create the entry for the Toronto event with venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'; (3) update or create the entry for the Nancy WONDER RAVE event with dateTime '2026-03-13T22:00:00Z'; (4) update or create the entry for the Paris OFF THE GRID event with dateTime '2026-03-14T22:00:00Z'; (5) confirm the Brighton Concorde 2 entry reflects dateTime '2026-05-15T22:00:00Z'; (6) confirm the Cardiff District Cardiff entry reflects dateTime '2026-07-24T22:00:00Z'; (7) confirm the Ostend Klein Strand entry reflects dateTime '2026-07-10T18:00:00Z'; (8) confirm the Iceland Hellissandur entry reflects dateTime '2027-08-12T20:00:00Z'. Remove or overwrite any existing lookup entries whose composite keys no longer correspond to a live backend event ID due to venue or dateTime changes, so that the Add to Radar functionality continues to work correctly using the exact backend event IDs.",
-        "status": "missing",
+        "id": "REQ-2",
+        "summary": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time. The hook must not stay in a pending state indefinitely after authentication resolves.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/eventIdLookup.ts"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/AdminInitButton.tsx"
         ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/AdminInitButton.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Verify the backend initializeSeedData (or equivalent) function is callable and returns successfully when invoked by an admin principal. Ensure the admin access control check in the backend correctly identifies the admin caller.",
+        "status": "unknown",
+        "plannedFiles": [],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/AdminInitButton.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/ArtistsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -112,6 +112,16 @@ const CITY_TO_IATA: Record<string, string> = {
   medelln: 'MDE',     // Accent-stripped variant
   cali: 'CLO',
 
+  // Malta
+  malta: 'MLA',
+  valletta: 'MLA',
+
+  // Norway
+  oslo: 'OSL',
+
+  // Denmark
+  copenhagen: 'CPH',
+
   // Other
   dubai: 'DXB',
   singapore: 'SIN',
@@ -128,8 +138,6 @@ const CITY_TO_IATA: Record<string, string> = {
   warsaw: 'WAW',
   budapest: 'BUD',
   stockholm: 'ARN',
-  oslo: 'OSL',
-  copenhagen: 'CPH',
   helsinki: 'HEL',
   dublin: 'DUB',
   cairo: 'CAI',

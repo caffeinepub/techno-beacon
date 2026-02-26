@@ -1,22 +1,48 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace Dave Clarke seed data with fully corrected verified event records",
+  "title": "Restore AdminInitButton and seed data initialization functionality",
   "requirements": [
     {
-      "id": "REQ-109",
-      "summary": "Update Dave Clarke event lookup entries in frontend to match corrected backend venue strings and dateTimes",
+      "id": "REQ-1",
+      "summary": "Fix the AdminInitButton component so that it correctly detects admin status and renders the seed data initialization button for confirmed admins",
       "acceptanceCriteria": [
-        "Each of the 9 Dave Clarke events has a corresponding entry in the lookup table matching the exact backend event ID.",
-        "No stale or incorrect composite keys remain for Dave Clarke events.",
-        "Add to Radar button works correctly for all 9 Dave Clarke events after the update.",
-        "Lookup entries for all other artists are unchanged."
+        "Admin user sees the 'Initialize Data' button on the ArtistsPage",
+        "Clicking the button triggers the backend seed data initialization",
+        "The spinner does not run indefinitely — it resolves or times out within 5 seconds",
+        "Non-admin users do not see the button"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/eventIdLookup.ts",
+          "path": "frontend/src/components/AdminInitButton.tsx",
           "operation": "modify",
-          "description": "Update all Dave Clarke event lookup entries to reflect the corrected venue strings and dateTimes from the backend seed data. Specifically: (1) update or create the Vancouver event entry with venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z' in nanoseconds; (2) update or create the Toronto event entry with venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z' in nanoseconds; (3) update or create the Nancy WONDER RAVE event entry with dateTime '2026-03-13T22:00:00Z' in nanoseconds; (4) update or create the Paris OFF THE GRID event entry with dateTime '2026-03-14T22:00:00Z' in nanoseconds; (5) confirm the London fabric event entry reflects dateTime '2026-04-04T22:00:00Z' in nanoseconds; (6) confirm the Brighton Concorde 2 event entry reflects dateTime '2026-05-15T22:00:00Z' in nanoseconds; (7) confirm the Ostend Klein Strand event entry reflects dateTime '2026-07-10T18:00:00Z' in nanoseconds; (8) confirm the Cardiff District Cardiff event entry reflects dateTime '2026-07-24T22:00:00Z' in nanoseconds; (9) confirm the Iceland Hellissandur event entry reflects dateTime '2027-08-12T20:00:00Z' in nanoseconds. Remove any stale Dave Clarke lookup entries whose composite keys (artistId + dateTime nanoseconds) no longer match the corrected backend event IDs. Preserve all lookup entries for other artists (Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) unchanged. Ensure the getEventId helper function continues to work correctly with the updated lookup table so that Add to Radar functionality resolves the correct backend event IDs for all 9 Dave Clarke events."
+          "description": "Review and fix the admin detection logic to ensure it correctly receives actor and identity state from useActor and useIsAdmin hooks. Verify the 5-second timeout guard implemented with useRef is properly clearing the timer on component unmount. Ensure the loading state correctly transitions when the actor becomes available and admin status is confirmed. Add explicit error handling for the initializeSeedData call with user-facing feedback. Verify the authorization component's usage instructions are followed for admin-only UI rendering."
+        },
+        {
+          "path": "frontend/src/pages/ArtistsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure AdminInitButton is properly rendered on the ArtistsPage and receives necessary context. Verify the component is positioned where admins can easily find it. Confirm the page waits for authentication state to stabilize before rendering admin-gated components."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure the useActor hook correctly signals readiness so that admin-gated components like AdminInitButton receive a valid actor reference in time",
+      "acceptanceCriteria": [
+        "useActor resolves to a valid actor within a reasonable time after login",
+        "AdminInitButton receives the actor and proceeds past the loading guard",
+        "Actor readiness state is correctly propagated to consuming components"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Review the useIsAdmin hook implementation to ensure it correctly waits for actor availability before querying admin status. Add proper enabled conditions that check both actor presence and authentication state. Ensure the hook returns consistent loading/fetching states that components can rely on to avoid premature rendering. Verify the query is properly invalidated when actor changes or authentication state updates."
+        },
+        {
+          "path": "frontend/src/components/AdminInitButton.tsx",
+          "operation": "modify",
+          "description": "Update the component to properly consume the loading and fetching states from both useActor and useIsAdmin hooks. Ensure the component shows appropriate loading UI while waiting for actor readiness and admin status resolution. Add defensive checks for actor availability before attempting to call backend functions. Implement proper error boundaries for actor initialization failures."
         }
       ]
     }

@@ -52,6 +52,7 @@ export interface _SERVICE {
   'getTrackedArtists' : ActorMethod<[Principal], Array<string>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'initializeSeedData' : ActorMethod<[], undefined>,
+  'isAdmin' : ActorMethod<[], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeEventFromRadar' : ActorMethod<[string], Result>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

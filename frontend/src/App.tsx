@@ -1,11 +1,7 @@
-import React from 'react';
-import {
-  createRouter,
-  createRoute,
-  createRootRoute,
-  RouterProvider,
-  Outlet,
-} from '@tanstack/react-router';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
 import Navigation from './components/Navigation';
 import ProfileSetupModal from './components/ProfileSetupModal';
 import DiscoverPage from './pages/DiscoverPage';
@@ -13,11 +9,12 @@ import ArtistsPage from './pages/ArtistsPage';
 import ArtistDetailPage from './pages/ArtistDetailPage';
 import MyRadarPage from './pages/MyRadarPage';
 import NotFoundPage from './pages/NotFoundPage';
-import { useGetCallerUserProfile } from './hooks/useQueries';
+import { Heart } from 'lucide-react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { Toaster } from '@/components/ui/sonner';
+import { useGetCallerUserProfile } from './hooks/useQueries';
 
-// Layout component
+const queryClient = new QueryClient();
+
 function Layout() {
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
@@ -28,18 +25,16 @@ function Layout() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />
-      <div className="flex-1">
+      <main className="flex-1">
         <Outlet />
-      </div>
-      <footer className="border-t border-border py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs font-mono text-muted-foreground">
-            © {new Date().getFullYear()} Techno Beacon. All rights reserved.
+      </main>
+      <footer className="border-t border-border py-6 px-4 mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+          <p className="font-mono text-xs text-muted-foreground">
+            © {new Date().getFullYear()} TECHNO BEACON — ALL RIGHTS RESERVED
           </p>
-          <p className="text-xs text-muted-foreground">
-            Built with{' '}
-            <span className="text-neon-amber">♥</span>{' '}
-            using{' '}
+          <p className="font-mono text-xs text-muted-foreground flex items-center gap-1">
+            Built with <Heart className="w-3 h-3 text-neon-amber fill-neon-amber" /> using{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== 'undefined' ? window.location.hostname : 'techno-beacon')}`}
               target="_blank"
@@ -57,13 +52,9 @@ function Layout() {
   );
 }
 
-// Routes
-const rootRoute = createRootRoute({
-  component: Layout,
-  notFoundComponent: NotFoundPage,
-});
+const rootRoute = createRootRoute({ component: Layout });
 
-const indexRoute = createRoute({
+const discoverRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: DiscoverPage,
@@ -87,11 +78,18 @@ const myRadarRoute = createRoute({
   component: MyRadarPage,
 });
 
+const notFoundRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '*',
+  component: NotFoundPage,
+});
+
 const routeTree = rootRoute.addChildren([
-  indexRoute,
+  discoverRoute,
   artistsRoute,
   artistDetailRoute,
   myRadarRoute,
+  notFoundRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -103,5 +101,11 @@ declare module '@tanstack/react-router' {
 }
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
 }
