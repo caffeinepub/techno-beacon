@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+
+    /* Dark industrial techno theme - always dark */
+    --background: 0.08 0 0;
+    --foreground: 0.95 0 0;
+    --card: 0.11 0 0;
+    --card-foreground: 0.95 0 0;
+    --popover: 0.13 0 0;
+    --popover-foreground: 0.95 0 0;
+    --primary: 0.75 0.18 65;
+    --primary-foreground: 0.08 0 0;
+    --secondary: 0.16 0 0;
+    --secondary-foreground: 0.95 0 0;
+    --muted: 0.15 0 0;
+    --muted-foreground: 0.55 0 0;
+    --accent: 0.75 0.18 65;
+    --accent-foreground: 0.08 0 0;
+    --destructive: 0.65 0.22 25;
+    --destructive-foreground: 0.95 0 0;
+    --border: 0.22 0 0;
+    --input: 0.18 0 0;
+    --ring: 0.75 0.18 65;
+    --chart-1: 0.75 0.18 65;
+    --chart-2: 0.72 0.22 140;
+    --chart-3: 0.65 0.18 200;
+    --chart-4: 0.68 0.2 300;
+    --chart-5: 0.7 0.2 30;
+    --sidebar: 0.10 0 0;
+    --sidebar-foreground: 0.95 0 0;
+    --sidebar-primary: 0.75 0.18 65;
+    --sidebar-primary-foreground: 0.08 0 0;
+    --sidebar-accent: 0.16 0 0;
+    --sidebar-accent-foreground: 0.95 0 0;
+    --sidebar-border: 0.22 0 0;
+    --sidebar-ring: 0.75 0.18 65;
+
+    /* Neon accent tokens */
+    --neon-amber: oklch(0.75 0.18 65);
+    --neon-amber-dim: oklch(0.65 0.15 65);
+    --neon-green: oklch(0.72 0.22 140);
+    --neon-green-dim: oklch(0.62 0.18 140);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background-color: oklch(0.08 0 0);
+  }
+}
+
+@layer utilities {
+  .neon-text {
+    color: var(--neon-amber);
+  }
+
+  .neon-glow {
+    text-shadow: 0 0 10px var(--neon-amber), 0 0 20px var(--neon-amber-dim);
+  }
+
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px oklch(0.75 0.18 65 / 0.2), 0 8px 32px oklch(0 0 0 / 0.5);
+  }
+
+  .neon-border {
+    border-color: oklch(0.75 0.18 65 / 0.4);
+  }
+
+  .neon-border:hover {
+    border-color: oklch(0.75 0.18 65 / 0.8);
+    box-shadow: 0 0 12px oklch(0.75 0.18 65 / 0.3);
+  }
+
+  .font-mono-tech {
+    font-family: 'Space Mono', monospace;
+  }
+
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      oklch(0 0 0 / 0.03) 2px,
+      oklch(0 0 0 / 0.03) 4px
+    );
+  }
+}
+
+@keyframes pulse-neon {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 5px oklch(0.75 0.18 65 / 0.3); }
+  50% { box-shadow: 0 0 20px oklch(0.75 0.18 65 / 0.6), 0 0 40px oklch(0.75 0.18 65 / 0.2); }
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}

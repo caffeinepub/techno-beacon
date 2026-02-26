@@ -1,0 +1,601 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 43,
+  "summary": "Techno Beacon is a mobile app for die-hard techno fans to discover, track, and get alerts on upcoming sets from techno artists worldwide. It aggregates real-time event data from sources like Resident Advisor, Bandsintown, and artist feeds, filters out irrelevant events, and delivers personalized notifications. The focus is on authentic techno experiences and the pioneers who define the genre.",
+  "architectural_notes": [
+    "Aggregate real-time event data from third-party sources: Resident Advisor (RA), Bandsintown, and artist social/RSS feeds",
+    "Filtering logic must distinguish authentic techno events from mainstream or irrelevant events",
+    "Real artist event data is sourced directly from user-provided RA profile extracts (Richie Hawtin, Dave Clarke, Jeff Mills) and must be seeded verbatim into the backend",
+    "Trip planner uses deep links to Skyscanner and Booking.com (pre-filled with destination city and dates) — no paid flight/hotel API required"
+  ],
+  "known_issues": [
+    "Artists page shows 'no artists found' — artist data not populating correctly",
+    "Artist event schedule overlay not showing data when clicking artist profile (Richie Hawtin test case)",
+    "Artists page still showing '0 / 0 artists — No artist data found' after latest deploy; seed data for Dave Clarke, Jeff Mills, and Richie Hawtin is not loading",
+    "Admin-only seed data initialization — user wants the real artist/event data they provided to be directly wired into the backend without requiring manual admin button clicks; data connection is broken",
+    "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided",
+    "Production/deployed version requires admin login and does not show artist names or event data — preview (left screen) works but deployed site (right screen) does not; regression introduced in latest deploy",
+    "Artists page regressed again in Version 16 — artists not showing after Trip Planner deploy"
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-build-a-discover-page-that-lists-all-upcoming-techno-events-sorted-by-date-each-event-card-must-show-artist-name-event-title-venue-city-country-date-and-time-a-source-badge-ra-bandsintown-etc-and-a-link-to-the-external-event-url-include-a-search-filter-bar-that-lets-users-filter-events-by-artist-name-city-or-date-range",
+      "title": "Build a Discover page that lists all upcoming techno events sorted by date. Each event card must show: artist name, event title, venue, city + country, date and time, a source badge (RA, Bandsintown, etc.), and a link to the external event URL. Include a search/filter bar that lets users filter events by artist name, city, or date range.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-artists-page-that-displays-the-full-roster-of-tracked-and-available-techno-artists-each-artist-card-shows-their-name-a-photo-avatar-and-an-indicator-of-how-many-upcoming-events-they-have-users-can-click-to-view-an-artist-detail-page-listing-all-their-upcoming-events-authenticated-users-can-toggle-follow-unfollow-on-any-artist",
+      "title": "Build an Artists page that displays the full roster of tracked and available techno artists. Each artist card shows their name, a photo/avatar, and an indicator of how many upcoming events they have. Users can click to view an artist detail page listing all their upcoming events. Authenticated users can toggle follow/unfollow on any artist.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-my-radar-page-requires-login-that-shows-only-the-upcoming-events-for-the-artists-the-authenticated-user-is-tracking-if-the-user-tracks-no-artists-display-a-prompt-encouraging-them-to-follow-artists-show-a-summary-count-of-tracked-artists-and-upcoming-events-at-the-top",
+      "title": "Build a My Radar page (requires login) that shows only the upcoming events for the artists the authenticated user is tracking. If the user tracks no artists, display a prompt encouraging them to follow artists. Show a summary count of tracked artists and upcoming events at the top.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-internet-identity-login-show-a-login-button-in-the-top-navigation-for-unauthenticated-users-after-login-display-the-user-s-principal-derived-short-identifier-and-a-logout-button-gate-the-my-radar-page-and-the-follow-unfollow-action-behind-authentication-prompting-login-if-unauthenticated-users-attempt-to-access-them",
+      "title": "Integrate Internet Identity login. Show a Login button in the top navigation for unauthenticated users. After login, display the user's principal-derived short identifier and a Logout button. Gate the My Radar page and the follow/unfollow action behind authentication, prompting login if unauthenticated users attempt to access them.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-dark-industrial-high-energy-visual-theme-throughout-the-app-that-evokes-underground-techno-culture-near-black-backgrounds-stark-high-contrast-typography-sharp-sans-serif-fonts-neon-accent-colors-amber-orange-or-acid-green-grid-or-waveform-inspired-ui-textures-and-motion-subtle-hover-effects-on-cards-enforce-this-theme-consistently-across-all-pages-and-components",
+      "title": "Apply a dark, industrial, high-energy visual theme throughout the app that evokes underground techno culture: near-black backgrounds, stark high-contrast typography (sharp sans-serif fonts), neon accent colors (amber/orange or acid green), grid or waveform-inspired UI textures, and motion-subtle hover effects on cards. Enforce this theme consistently across all pages and components.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-display-a-hero-banner-image-on-the-discover-page-featuring-a-dark-atmospheric-underground-techno-rave-scene-silhouetted-crowd-with-industrial-lighting-fog-and-laser-beams-that-reinforces-the-brand-aesthetic",
+      "title": "Generate and display a hero banner image on the Discover page featuring a dark, atmospheric underground techno rave scene — silhouetted crowd with industrial lighting, fog, and laser beams — that reinforces the brand aesthetic.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-display-a-logo-mark-image-for-techno-beacon-a-minimalist-geometric-beacon-signal-icon-in-neon-amber-on-a-black-background-suitable-for-use-in-the-navigation-bar-and-as-a-favicon",
+      "title": "Generate and display a logo mark image for Techno Beacon: a minimalist geometric beacon/signal icon in neon amber on a black background, suitable for use in the navigation bar and as a favicon.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-artists-page-and-any-artist-card-including-in-the-discover-page-clicking-an-artist-s-name-or-avatar-image-instantly-opens-a-lightweight-modal-overlay-showing-that-artist-s-upcoming-event-schedule-the-overlay-must-appear-without-a-full-page-navigation-load-immediately-data-already-cached-from-the-artist-list-display-events-sorted-by-date-and-be-dismissible-with-a-single-click-or-tap-outside-keep-the-ui-minimal-artist-name-as-heading-then-a-clean-list-of-events-showing-date-venue-city-and-a-link-to-the-event-url",
+      "title": "On the Artists page and any artist card (including in the Discover page), clicking an artist's name or avatar/image instantly opens a lightweight modal/overlay showing that artist's upcoming event schedule. The overlay must appear without a full page navigation, load immediately (data already cached from the artist list), display events sorted by date, and be dismissible with a single click or tap outside. Keep the UI minimal: artist name as heading, then a clean list of events showing date, venue, city, and a link to the event URL.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-artists-page-so-that-seeded-artist-data-is-correctly-fetched-from-the-backend-and-rendered-the-page-currently-shows-no-artists-found-despite-artist-records-existing-in-the-backend-investigate-and-resolve-the-data-fetching-pipeline-ensure-the-backend-getartists-or-equivalent-query-function-returns-the-seeded-artists-the-useartists-react-query-hook-in-usequeries-ts-correctly-calls-that-function-and-maps-the-response-and-artistspage-tsx-renders-the-returned-list-rather-than-an-empty-state",
+      "title": "Fix the Artists page so that seeded artist data is correctly fetched from the backend and rendered. The page currently shows 'no artists found' despite artist records existing in the backend. Investigate and resolve the data-fetching pipeline: ensure the backend `getArtists` (or equivalent) query function returns the seeded artists, the `useArtists` React Query hook in `useQueries.ts` correctly calls that function and maps the response, and `ArtistsPage.tsx` renders the returned list rather than an empty state.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-artisteventpopup-overlay-so-that-when-a-user-clicks-an-artist-s-name-or-avatar-e-g-richie-hawtin-jeff-mills-dave-clarke-the-popup-correctly-displays-that-artist-s-upcoming-event-schedule-investigate-and-resolve-the-full-data-pipeline-ensure-the-backend-returns-events-keyed-by-artist-the-useartists-or-relevant-react-query-hook-correctly-passes-event-data-to-the-popup-and-artisteventpopup-tsx-renders-the-event-list-rather-than-an-empty-or-blank-state",
+      "title": "Fix the ArtistEventPopup overlay so that when a user clicks an artist's name or avatar (e.g. Richie Hawtin, Jeff Mills, Dave Clarke), the popup correctly displays that artist's upcoming event schedule. Investigate and resolve the full data pipeline: ensure the backend returns events keyed by artist, the `useArtists` or relevant React Query hook correctly passes event data to the popup, and `ArtistEventPopup.tsx` renders the event list rather than an empty or blank state.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-full-data-pipeline-so-that-dave-clarke-jeff-mills-and-richie-hawtin-all-appear-on-the-artists-page-with-correct-event-counts-and-clicking-any-of-their-artist-cards-opens-the-artisteventpopup-showing-their-real-seeded-events-specifically-1-confirm-getartists-returns-all-three-artists-2-confirm-geteventsbyartist-is-called-correctly-in-usequeries-ts-3-confirm-artisteventpopup-tsx-renders-the-event-list-returned-by-the-hook-rather-than-an-empty-state",
+      "title": "Fix the full data pipeline so that Dave Clarke, Jeff Mills, and Richie Hawtin all appear on the Artists page with correct event counts, and clicking any of their artist cards opens the ArtistEventPopup showing their real seeded events. Specifically: (1) confirm `getArtists` returns all three artists, (2) confirm `getEventsByArtist` is called correctly in `useQueries.ts`, (3) confirm `ArtistEventPopup.tsx` renders the event list returned by the hook rather than an empty state.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-discover-page-also-displays-events-for-dave-clarke-jeff-mills-and-richie-hawtin-in-the-main-event-list-sorted-chronologically-alongside-any-other-seeded-events-the-events-must-show-all-required-fields-artist-name-event-title-venue-city-country-date-time-source-badge-ra-and-a-link-to-the-event-url",
+      "title": "Ensure the Discover page also displays events for Dave Clarke, Jeff Mills, and Richie Hawtin in the main event list, sorted chronologically alongside any other seeded events. The events must show all required fields: artist name, event title, venue, city + country, date/time, source badge ('RA'), and a link to the event URL.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admininitbutton-component-and-any-admin-init-ui-on-the-artists-page-and-discover-page-so-that-clicking-the-initialize-seed-data-button-actually-triggers-the-backend-initializeseeddata-call-awaits-completion-invalidates-the-artists-and-events-react-query-caches-and-then-re-renders-the-page-with-the-newly-seeded-data-display-a-clear-success-message-e-g-seed-data-loaded-or-an-error-message-if-the-call-fails-the-button-must-be-visible-and-functional-when-the-artists-page-shows-0-0-artists-no-artist-data-found",
+      "title": "Fix the `AdminInitButton` component and any admin-init UI on the Artists page and Discover page so that clicking the 'Initialize seed data' button actually triggers the backend `initializeSeedData` call, awaits completion, invalidates the `artists` and `events` React Query caches, and then re-renders the page with the newly seeded data. Display a clear success message (e.g. 'Seed data loaded') or an error message if the call fails. The button must be visible and functional when the Artists page shows '0 / 0 artists — No artist data found'.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-discover-page-front-home-page-display-a-prominently-visible-section-above-or-alongside-the-event-list-that-shows-the-names-of-all-seeded-artists-dave-clarke-jeff-mills-richie-hawtin-and-any-others-each-name-must-be-rendered-as-a-large-clearly-legible-clickable-element-e-g-a-row-of-name-chips-cards-or-a-horizontal-roster-strip-clicking-any-artist-name-must-immediately-open-the-artisteventpopup-overlay-showing-that-artist-s-upcoming-events-without-any-page-navigation",
+      "title": "On the Discover page (front/home page), display a prominently visible section — above or alongside the event list — that shows the names of all seeded artists (Dave Clarke, Jeff Mills, Richie Hawtin, and any others). Each name must be rendered as a large, clearly legible, clickable element (e.g. a row of name chips, cards, or a horizontal roster strip). Clicking any artist name must immediately open the ArtistEventPopup overlay showing that artist's upcoming events without any page navigation.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-full-frontend-data-pipeline-so-that-1-the-useartists-react-query-hook-in-usequeries-ts-correctly-fetches-and-returns-all-seeded-artists-from-the-backend-2-the-useeventsbyartist-hook-correctly-fetches-events-for-a-given-artist-id-3-artisteventpopup-tsx-renders-the-returned-event-list-rather-than-an-empty-or-blank-state-4-artist-names-shown-on-the-discover-page-are-sourced-from-the-same-react-query-cache-used-by-the-artists-page-avoiding-duplicate-fetch-logic",
+      "title": "Fix the full frontend data pipeline so that: (1) the `useArtists` React Query hook in `useQueries.ts` correctly fetches and returns all seeded artists from the backend; (2) the `useEventsByArtist` hook correctly fetches events for a given artist ID; (3) `ArtistEventPopup.tsx` renders the returned event list rather than an empty or blank state; (4) artist names shown on the Discover page are sourced from the same React Query cache used by the Artists page, avoiding duplicate fetch logic.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admininitbutton-tsx-to-reflect-admin-only-access-add-a-visible-admin-only-label-or-badge-next-to-the-button-so-it-is-clearly-distinguished-from-general-user-actions-the-button-must-still-call-initializeseeddata-await-completion-invalidate-the-artists-and-events-react-query-caches-and-display-a-success-or-error-toast",
+      "title": "Update `AdminInitButton.tsx` to reflect admin-only access: add a visible 'Admin only' label or badge next to the button so it is clearly distinguished from general user actions. The button must still call `initializeSeedData`, await completion, invalidate the `artists` and `events` React Query caches, and display a success or error toast.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-artisteventpopup-tsx-and-the-useeventsbyartist-hook-in-usequeries-ts-so-that-clicking-an-artist-name-on-the-discover-page-or-artists-page-correctly-fetches-and-renders-that-artist-s-event-list-the-popup-must-1-call-geteventsbyartist-with-the-correct-artist-id-2-display-the-returned-events-sorted-by-date-showing-event-title-venue-city-date-time-and-a-link-to-the-event-url-3-show-a-loading-skeleton-while-fetching-4-only-show-no-upcoming-events-found-if-the-backend-genuinely-returns-an-empty-list",
+      "title": "Fix `ArtistEventPopup.tsx` and the `useEventsByArtist` hook in `useQueries.ts` so that clicking an artist name on the Discover page or Artists page correctly fetches and renders that artist's event list. The popup must: (1) call `getEventsByArtist` with the correct artist ID; (2) display the returned events sorted by date, showing event title, venue, city, date/time, and a link to the event URL; (3) show a loading skeleton while fetching; (4) only show 'No upcoming events found' if the backend genuinely returns an empty list.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-artisteventpopup-tsx-and-the-useeventsbyartist-hook-in-usequeries-ts-so-that-clicking-richie-hawtin-s-artist-card-or-name-on-the-discover-page-or-artists-page-correctly-fetches-and-renders-his-event-list-specifically-1-confirm-the-hook-calls-geteventsbyartist-with-the-exact-artist-id-stored-in-the-artist-record-not-a-display-name-string-2-confirm-the-hook-s-response-is-mapped-to-the-expected-event-shape-and-passed-to-artisteventpopup-3-confirm-artisteventpopup-tsx-renders-the-returned-event-rows-eventtitle-venue-city-date-time-external-link-sorted-by-date-4-show-a-loading-skeleton-while-fetching-5-only-show-no-upcoming-events-found-if-the-backend-genuinely-returns-an-empty-array",
+      "title": "Fix `ArtistEventPopup.tsx` and the `useEventsByArtist` hook in `useQueries.ts` so that clicking Richie Hawtin's artist card or name (on the Discover page or Artists page) correctly fetches and renders his event list. Specifically: (1) confirm the hook calls `getEventsByArtist` with the exact artist ID stored in the artist record (not a display-name string); (2) confirm the hook's response is mapped to the expected event shape and passed to `ArtistEventPopup`; (3) confirm `ArtistEventPopup.tsx` renders the returned event rows (eventTitle, venue, city, date/time, external link) sorted by date; (4) show a loading skeleton while fetching; (5) only show 'No upcoming events found' if the backend genuinely returns an empty array.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-usequeries-ts-so-that-the-useeventsbyartist-hook-calls-geteventsbyartist-with-the-exact-artist-id-value-stored-in-the-artist-record-not-the-display-name-string-or-any-derived-value-add-robust-logging-or-error-surfacing-so-that-if-the-call-returns-an-empty-array-or-throws-a-clear-error-is-visible-in-the-ui-rather-than-silently-showing-no-events-found",
+      "title": "Fix `useQueries.ts` so that the `useEventsByArtist` hook calls `getEventsByArtist` with the exact artist ID value stored in the artist record (not the display name string or any derived value). Add robust logging or error surfacing so that if the call returns an empty array or throws, a clear error is visible in the UI rather than silently showing 'No events found'.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-artisteventpopup-tsx-so-that-when-opened-for-richie-hawtin-it-correctly-renders-all-events-returned-by-useeventsbyartist-the-popup-must-1-display-a-loading-skeleton-while-the-query-is-in-flight-2-render-each-returned-event-row-showing-event-title-venue-city-date-time-and-a-link-to-the-event-url-3-sort-events-chronologically-by-date-4-show-no-upcoming-events-found-only-when-the-backend-genuinely-returns-an-empty-array-not-when-data-is-undefined-loading-or-the-hook-errored",
+      "title": "Fix `ArtistEventPopup.tsx` so that when opened for Richie Hawtin it correctly renders all events returned by `useEventsByArtist`. The popup must: (1) display a loading skeleton while the query is in-flight; (2) render each returned event row showing event title, venue, city, date/time, and a link to the event URL; (3) sort events chronologically by date; (4) show 'No upcoming events found' only when the backend genuinely returns an empty array — not when data is undefined, loading, or the hook errored.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-or-bypass-any-authentication-admin-login-gate-that-is-currently-blocking-unauthenticated-users-from-seeing-artist-names-and-event-data-on-the-deployed-production-site-the-discover-page-artist-roster-strip-and-the-event-list-must-be-fully-visible-to-unauthenticated-visitors-only-the-my-radar-page-and-the-follow-unfollow-action-should-require-login-the-admininitbutton-should-remain-visible-only-as-a-secondary-manual-re-seed-tool-and-must-not-block-page-rendering-for-regular-users",
+      "title": "Remove or bypass any authentication/admin-login gate that is currently blocking unauthenticated users from seeing artist names and event data on the deployed (production) site. The Discover page artist roster strip and the event list must be fully visible to unauthenticated visitors. Only the My Radar page and the follow/unfollow action should require login. The AdminInitButton should remain visible only as a secondary manual re-seed tool and must not block page rendering for regular users.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-useartists-react-query-hook-in-usequeries-ts-uses-the-anonymous-unauthenticated-actor-when-no-identity-is-present-so-that-public-read-queries-getartists-getallevents-geteventsbyartist-succeed-on-the-deployed-site-without-requiring-the-user-to-be-logged-in-the-actor-used-for-read-only-calls-must-not-require-an-authenticated-principal",
+      "title": "Ensure the `useArtists` React Query hook in `useQueries.ts` uses the anonymous (unauthenticated) actor when no identity is present, so that public read queries (`getArtists`, `getAllEvents`, `getEventsByArtist`) succeed on the deployed site without requiring the user to be logged in. The actor used for read-only calls must not require an authenticated principal.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-plan-trip-button-to-each-event-card-on-the-discover-page-and-in-the-artisteventpopup-the-button-should-be-compact-and-visually-consistent-with-the-dark-techno-theme-e-g-a-plane-icon-or-plan-trip-label",
+      "title": "Add a 'Plan Trip' button to each event card on the Discover page and in the ArtistEventPopup. The button should be compact and visually consistent with the dark techno theme (e.g. a plane icon or '✈ Plan Trip' label).",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-clicking-the-plan-trip-button-opens-a-modal-pre-filled-with-the-event-s-artist-name-destination-city-country-and-date-the-modal-must-1-display-the-event-details-as-context-artist-venue-city-date-2-include-a-text-input-for-the-user-s-home-city-airport-persisted-to-localstorage-so-it-is-remembered-across-sessions-3-auto-suggest-travel-dates-arrive-the-day-before-the-event-depart-the-day-after-4-include-a-budget-selector-with-three-options-budget-mid-range-luxury-5-generate-and-display-a-skyscanner-deep-link-button-pre-filled-with-origin-city-destination-city-outbound-date-day-before-event-return-date-day-after-event-6-generate-and-display-a-booking-com-deep-link-button-pre-filled-with-destination-city-and-the-same-stay-dates",
+      "title": "Clicking the 'Plan Trip' button opens a modal pre-filled with the event's artist name, destination city, country, and date. The modal must: (1) display the event details as context (artist, venue, city, date); (2) include a text input for the user's home city/airport (persisted to localStorage so it is remembered across sessions); (3) auto-suggest travel dates — arrive the day before the event, depart the day after; (4) include a budget selector with three options: Budget, Mid-range, Luxury; (5) generate and display a Skyscanner deep-link button pre-filled with origin city, destination city, outbound date (day before event), return date (day after event); (6) generate and display a Booking.com deep-link button pre-filled with destination city and the same stay dates.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-construct-the-skyscanner-deep-link-url-using-the-format-https-www-skyscanner-net-transport-flights-origin-destination-outbounddate-returndate-where-dates-are-in-yymmdd-format-and-origin-destination-are-iata-city-codes-or-city-name-slugs-construct-the-booking-com-deep-link-url-using-the-format-https-www-booking-com-searchresults-html-ss-city-checkin-yyyy-mm-dd-checkout-yyyy-mm-dd-both-links-must-open-in-a-new-tab",
+      "title": "Construct the Skyscanner deep-link URL using the format: `https://www.skyscanner.net/transport/flights/{origin}/{destination}/{outboundDate}/{returnDate}/` where dates are in YYMMDD format and origin/destination are IATA city codes or city name slugs. Construct the Booking.com deep-link URL using the format: `https://www.booking.com/searchresults.html?ss={city}&checkin={YYYY-MM-DD}&checkout={YYYY-MM-DD}`. Both links must open in a new tab.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-useartists-react-query-hook-in-frontend-src-hooks-usequeries-ts-to-use-the-anonymous-unauthenticated-actor-for-all-public-read-queries-getartists-getallevents-geteventsbyartist-so-they-succeed-without-requiring-the-user-to-be-logged-in-the-hook-must-not-gate-on-authentication-state-for-read-operations-add-console-error-logging-so-any-failed-backend-call-surfaces-visibly-in-the-browser-console-rather-than-silently-returning-an-empty-list",
+      "title": "Fix the `useArtists` React Query hook in `frontend/src/hooks/useQueries.ts` to use the anonymous (unauthenticated) actor for all public read queries (`getArtists`, `getAllEvents`, `getEventsByArtist`) so they succeed without requiring the user to be logged in. The hook must not gate on authentication state for read operations. Add console error logging so any failed backend call surfaces visibly in the browser console rather than silently returning an empty list.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-frontend-src-pages-artistspage-tsx-to-render-the-artist-list-returned-by-the-useartists-hook-rather-than-showing-an-empty-state-ensure-the-component-correctly-maps-the-hook-s-response-to-artist-cards-and-does-not-apply-any-authentication-guard-that-prevents-unauthenticated-users-from-seeing-the-list-the-admininitbutton-must-remain-available-as-a-secondary-manual-re-seed-tool-but-must-not-be-the-only-path-to-rendering-artists",
+      "title": "Fix `frontend/src/pages/ArtistsPage.tsx` to render the artist list returned by the `useArtists` hook rather than showing an empty state. Ensure the component correctly maps the hook's response to artist cards and does not apply any authentication guard that prevents unauthenticated users from seeing the list. The AdminInitButton must remain available as a secondary manual re-seed tool but must not be the only path to rendering artists.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rewrite-the-skyscanner-deep-link-url-generation-in-frontend-src-utils-travellinks-ts-so-that-it-maps-event-city-names-to-valid-iata-airport-codes-or-skyscanner-recognised-city-slugs-before-constructing-the-url-maintain-a-lookup-table-that-covers-all-seeded-event-cities-vancouver-toronto-nancy-paris-london-brighton-ostend-cardiff-hellissandur-chicago-detroit-washington-dc-san-francisco-los-angeles-new-york-city-montreal-johannesburg-cape-town-strasbourg-amsterdam-berlin-barcelona-tokyo-plus-any-user-entered-home-city-for-cities-that-have-a-clear-iata-code-e-g-lhr-lon-for-london-cdg-par-for-paris-ams-for-amsterdam-yvr-for-vancouver-yyz-for-toronto-ord-chi-for-chicago-dtw-for-detroit-lax-for-los-angeles-jfk-nyc-for-new-york-city-sfo-for-san-francisco-yul-for-montreal-jhb-for-johannesburg-cpt-for-cape-town-nrt-tyo-for-tokyo-bcn-for-barcelona-txl-ber-for-berlin-sxb-for-strasbourg-bhx-bhd-for-brighton-use-the-nearest-airport-dca-iad-was-for-washington-dc-cwl-for-cardiff-use-the-iata-code-for-cities-without-a-major-airport-e-g-hellissandur-ostend-brighton-cardiff-nancy-map-to-the-nearest-practical-airport-code-or-the-skyscanner-city-slug-that-skyscanner-actually-recognises-e-g-hellissandur-kef-for-reykjavik-iceland-ostend-ost-brighton-lgw-cardiff-cwl-nancy-etz-or-the-nearest-slug-the-constructed-url-must-follow-the-existing-format-https-www-skyscanner-net-transport-flights-origin-destination-yymmdd-yymmdd-using-these-resolved-codes-slugs-if-a-city-cannot-be-mapped-fall-back-to-the-nearest-known-airport-code-rather-than-passing-a-raw-place-name-the-user-s-home-city-input-in-the-trip-planner-modal-must-also-be-resolved-through-the-same-lookup-before-being-used-as-the-origin",
+      "title": "Rewrite the Skyscanner deep-link URL generation in `frontend/src/utils/travelLinks.ts` so that it maps event city names to valid IATA airport codes or Skyscanner-recognised city slugs before constructing the URL. Maintain a lookup table that covers all seeded event cities (Vancouver, Toronto, Nancy, Paris, London, Brighton, Ostend, Cardiff, Hellissandur, Chicago, Detroit, Washington DC, San Francisco, Los Angeles, New York City, Montreal, Johannesburg, Cape Town, Strasbourg, Amsterdam, Berlin, Barcelona, Tokyo) plus any user-entered home city. For cities that have a clear IATA code (e.g. LHR/LON for London, CDG/PAR for Paris, AMS for Amsterdam, YVR for Vancouver, YYZ for Toronto, ORD/CHI for Chicago, DTW for Detroit, LAX for Los Angeles, JFK/NYC for New York City, SFO for San Francisco, YUL for Montreal, JHB for Johannesburg, CPT for Cape Town, NRT/TYO for Tokyo, BCN for Barcelona, TXL/BER for Berlin, SXB for Strasbourg, BHX/BHD for Brighton use the nearest airport, DCA/IAD/WAS for Washington DC, CWL for Cardiff) use the IATA code. For cities without a major airport (e.g. Hellissandur, Ostend, Brighton, Cardiff, Nancy) map to the nearest practical airport code or the Skyscanner city slug that Skyscanner actually recognises (e.g. Hellissandur → KEF for Reykjavik/Iceland, Ostend → OST, Brighton → LGW, Cardiff → CWL, Nancy → ETZ or the nearest slug). The constructed URL must follow the existing format `https://www.skyscanner.net/transport/flights/{origin}/{destination}/{YYMMDD}/{YYMMDD}/` using these resolved codes/slugs. If a city cannot be mapped, fall back to the nearest known airport code rather than passing a raw place name. The user's home city input in the Trip Planner modal must also be resolved through the same lookup before being used as the origin.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-frontend-add-a-clear-user-facing-error-message-on-the-artists-page-and-discover-page-when-a-backend-call-fails-with-a-canister-rejection-error-such-as-ic0508-or-any-reject-code-5-response-instead-of-silently-showing-no-artists-found-or-an-empty-list-display-a-descriptive-message-such-as-unable-to-connect-to-the-backend-please-try-again-shortly-log-the-full-error-details-to-the-browser-console-once-the-backend-canister-is-running-again-the-pages-must-recover-and-display-data-correctly-on-the-next-query-retry-react-query-s-automatic-retry-or-manual-refresh",
+      "title": "On the frontend, add a clear user-facing error message on the Artists page and Discover page when a backend call fails with a canister rejection error (such as IC0508 or any Reject code 5 response). Instead of silently showing 'No artists found' or an empty list, display a descriptive message such as 'Unable to connect to the backend — please try again shortly.' Log the full error details to the browser console. Once the backend canister is running again, the pages must recover and display data correctly on the next query retry (React Query's automatic retry or manual refresh).",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-utils-travellinks-ts-or-a-new-frontend-src-utils-ticketlinks-ts-utility-add-a-buildticketsearchurl-artistname-string-eventtitle-string-city-string-function-that-constructs-a-deep-link-url-to-a-generic-ticketing-aggregator-search-results-page-pre-filled-with-the-artist-name-and-city-use-dice-fm-as-the-primary-target-https-dice-fm-search-q-encodedartistname-and-songkick-as-the-secondary-https-www-songkick-com-search-query-encodedartistname-both-values-must-be-url-encoded-the-function-must-return-both-urls-so-the-ui-can-offer-two-options",
+      "title": "In `frontend/src/utils/travelLinks.ts` (or a new `frontend/src/utils/ticketLinks.ts` utility), add a `buildTicketSearchUrl(artistName: string, eventTitle: string, city: string)` function that constructs a deep-link URL to a generic ticketing aggregator search results page pre-filled with the artist name and city. Use Dice.fm as the primary target: `https://dice.fm/search?q={encodedArtistName}` and Songkick as the secondary: `https://www.songkick.com/search?query={encodedArtistName}`. Both values must be URL-encoded. The function must return both URLs so the UI can offer two options.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-components-eventcard-tsx-to-replace-the-existing-generic-https-ra-co-event-url-link-with-two-compact-ticket-search-buttons-rendered-side-by-side-one-linking-to-the-dice-fm-search-url-and-one-linking-to-the-songkick-search-url-both-pre-filled-with-the-event-s-artist-name-using-buildticketsearchurl-style-the-buttons-consistently-with-the-dark-techno-theme-neon-amber-accent-compact-icon-or-label-dice-and-songkick-both-links-must-open-in-a-new-tab",
+      "title": "Update `frontend/src/components/EventCard.tsx` to replace the existing generic 'https://ra.co' event URL link with two compact ticket-search buttons rendered side by side: one linking to the Dice.fm search URL and one linking to the Songkick search URL, both pre-filled with the event's artist name using `buildTicketSearchUrl`. Style the buttons consistently with the dark techno theme (neon amber accent, compact, icon or label '🎟 Dice' and '🎟 Songkick'). Both links must open in a new tab.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-components-artisteventpopup-tsx-to-replace-the-existing-generic-https-ra-co-event-url-link-in-each-event-row-with-the-same-two-compact-ticket-search-buttons-dice-fm-and-songkick-pre-filled-with-the-artist-name-using-the-same-buildticketsearchurl-utility-both-links-must-open-in-a-new-tab-and-be-styled-consistently-with-the-dark-techno-theme",
+      "title": "Update `frontend/src/components/ArtistEventPopup.tsx` to replace the existing generic 'https://ra.co' event URL link in each event row with the same two compact ticket-search buttons (Dice.fm and Songkick) pre-filled with the artist name, using the same `buildTicketSearchUrl` utility. Both links must open in a new tab and be styled consistently with the dark techno theme.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-hooks-usequeries-ts-add-three-new-react-query-hooks-useradarevents-calls-getradarevents-on-the-authenticated-actor-and-returns-the-list-of-saved-events-useaddeventtoradar-a-mutation-hook-that-calls-addeventtoradar-eventid-and-on-success-invalidates-the-radarevents-query-cache-useremoveeventfromradar-a-mutation-hook-that-calls-removeeventfromradar-eventid-and-on-success-invalidates-the-radarevents-query-cache-all-three-hooks-must-use-the-authenticated-actor-and-must-not-be-called-when-the-user-is-unauthenticated",
+      "title": "In `frontend/src/hooks/useQueries.ts`, add three new React Query hooks: `useRadarEvents()` — calls `getRadarEvents()` on the authenticated actor and returns the list of saved events; `useAddEventToRadar()` — a mutation hook that calls `addEventToRadar(eventId)` and on success invalidates the `radarEvents` query cache; `useRemoveEventFromRadar()` — a mutation hook that calls `removeEventFromRadar(eventId)` and on success invalidates the `radarEvents` query cache. All three hooks must use the authenticated actor and must not be called when the user is unauthenticated.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-compact-add-to-radar-button-to-each-event-card-in-frontend-src-components-eventcard-tsx-when-an-authenticated-user-clicks-the-button-call-addeventtoradar-via-the-useaddeventtoradar-mutation-hook-and-show-a-brief-success-toast-added-to-radar-if-the-event-is-already-saved-show-the-button-in-an-active-filled-state-labelled-on-radar-and-clicking-it-calls-removeeventfromradar-with-a-toast-removed-from-radar-if-the-user-is-unauthenticated-clicking-the-button-shows-a-toast-prompting-login-log-in-to-save-events-to-your-radar-style-the-button-consistently-with-the-dark-techno-theme-neon-amber-accent-compact-size-same-visual-weight-as-the-existing-plan-trip-button",
+      "title": "Add a compact '📡 Add to Radar' button to each event card in `frontend/src/components/EventCard.tsx`. When an authenticated user clicks the button, call `addEventToRadar` via the `useAddEventToRadar` mutation hook and show a brief success toast ('Added to Radar'). If the event is already saved, show the button in an active/filled state labelled '📡 On Radar' and clicking it calls `removeEventFromRadar` with a toast ('Removed from Radar'). If the user is unauthenticated, clicking the button shows a toast prompting login ('Log in to save events to your Radar'). Style the button consistently with the dark techno theme (neon amber accent, compact size, same visual weight as the existing '✈ Plan Trip' button).",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-same-add-to-radar-on-radar-toggle-button-to-each-event-row-inside-frontend-src-components-artisteventpopup-tsx-with-identical-authentication-gating-toast-notifications-and-styling-as-described-in-req-59",
+      "title": "Add the same '📡 Add to Radar' / '📡 On Radar' toggle button to each event row inside `frontend/src/components/ArtistEventPopup.tsx`, with identical authentication-gating, toast notifications, and styling as described in REQ-59.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-src-pages-myradarpage-tsx-to-display-events-the-authenticated-user-has-explicitly-saved-via-add-to-radar-sourced-from-the-useradarevents-hook-these-saved-events-must-appear-in-a-dedicated-section-labelled-saved-events-or-equivalent-on-the-radar-page-sorted-chronologically-each-row-must-show-event-title-artist-name-venue-city-date-time-and-the-same-ticket-search-buttons-dice-songkick-already-present-on-other-event-cards-if-the-user-has-no-saved-events-show-a-prompt-such-as-no-saved-events-yet-tap-add-to-radar-on-any-event-to-save-it-here-the-existing-tracked-artist-upcoming-events-section-of-my-radar-must-remain-unchanged",
+      "title": "Update `frontend/src/pages/MyRadarPage.tsx` to display events the authenticated user has explicitly saved via 'Add to Radar', sourced from the `useRadarEvents` hook. These saved events must appear in a dedicated section labelled 'Saved Events' (or equivalent) on the Radar page, sorted chronologically. Each row must show event title, artist name, venue, city, date/time, and the same ticket-search buttons (Dice / Songkick) already present on other event cards. If the user has no saved events, show a prompt such as 'No saved events yet — tap 📡 Add to Radar on any event to save it here.' The existing 'tracked artist upcoming events' section of My Radar must remain unchanged.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Discover upcoming techno sets and events aggregated from RA, Bandsintown, and artist feeds",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Track favorite techno artists and follow their upcoming performances",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Personalized push notifications and alerts for tracked artists' upcoming sets",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Filter and surface only relevant techno events, removing mainstream/irrelevant noise",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Create a backend data model and actor to store techno artists, upcoming events (with fields: artist name, event title, venue, city, country, date/time, source label such as RA or Bandsintown, event URL), and user-tracked artist lists. Expose query and update functions: get all events, get events by artist, add/remove tracked artist per user (keyed by principal), get tracked artists for a user, and get events for tracked artists.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Seed the backend with a curated set of at least 20 iconic techno artists (e.g., Richie Hawtin, Jeff Mills, Nina Kraviz, Charlotte de Witte, Adam Beyer, Marcel Dettmann, Ben Klock, Aphex Twin, Surgeon, Blawan, Headless Horseman, Paula Temple, Dax J, Amelie Lens, Drumcode acts) and at least 15 realistic upcoming mock events spread across the next 6 months, assigned to various artists and venues worldwide.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Clicking an artist name or image instantly shows a pop-up/overlay with their event schedule — simple and fast. Start with 3 legend artists: Jeff Mills, Dave Clarke, and Richie Hawtin, with real event data extracted from Resident Advisor and similar sources.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Seed the backend with detailed artist records for Jeff Mills, Dave Clarke, and Richie Hawtin, including realistic upcoming event data (event title, venue, city, country, date/time, source label 'RA', and external event URL) modelled on real Resident Advisor listings. Each artist should have at least 4–6 upcoming events spread across the next 6 months at authentic venues worldwide.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Verify and fix the backend seed data for Jeff Mills, Dave Clarke, and Richie Hawtin. Each artist must have at least 4–6 upcoming events stored in the backend with all required fields: event title, venue, city, country, date/time (set within the next 6 months from now), source label 'RA', and a valid external event URL. Ensure the `getEventsByArtist` (or equivalent) query function returns these events correctly when queried by artist ID or name.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Seed the backend with real Dave Clarke event data from RA: 9 upcoming events including Vancouver (6 Mar), Toronto (7 Mar), Nancy (13 Mar), Paris Mia Mao (14 Mar), London fabric (4 Apr), Brighton Concorde 2 (15 May), Belgium Klein Strand (10 Jul), Cardiff District Cardiff (24 Jul), Iceland Hellissandur (12 Aug 2027). Display this data on the front page / Artists page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add Dave Clarke as a seeded artist in the backend with the following 9 upcoming events (all fields: event title, venue, city, country, date/time, source label 'RA', external event URL pointing to ra.co):\n1. 'Live Techno Experience with Dave Clarke' — Vancouver, TBA venue, Fri 6 Mar 2025\n2. 'Dave Clarke in Toronto' — Toronto, 821 Runnymede Rd, Sat 7 Mar 2025\n3. 'WONDER RAVE' — Nancy, TBA - LA STATION NANCY, Fri 13 Mar 2025\n4. 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — Paris, Mia Mao, Sat 14 Mar 2025\n5. 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — London, fabric, Sat 4 Apr 2025\n6. 'City Wall x Dave Clarke' — Brighton, Concorde 2, Fri 15 May 2025\n7. 'Ostend Beach Festival 2026' — Belgium, Klein Strand, Fri 10 Jul 2026\n8. 'Luvmuzik presents Dave Clarke & Gary Beck' — Cardiff, District Cardiff, Fri 24 Jul 2025\n9. 'Iceland Eclipse' — Hellissandur, Iceland, Thu 12 Aug 2027\nEnsure `getEventsByArtist` returns all 9 events when queried by Dave Clarke's artist ID.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Ensure Jeff Mills is seeded in the backend with at least 4–6 upcoming events (event title, venue, city, country, date/time, source label 'RA', external event URL). If Jeff Mills already exists but has zero or missing events, add realistic upcoming events modelled on real RA listings (e.g. Berlin Tresor, Detroit Movement Festival, Paris Rex Club, Tokyo club dates). Ensure `getEventsByArtist` returns these events correctly.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Verify that Richie Hawtin is seeded in the backend with at least 4–6 upcoming events with all required fields populated. If events are missing or the artist record is incomplete, re-seed with realistic RA-style event data. Ensure `getEventsByArtist` returns the correct events for Richie Hawtin.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Fix the backend `initializeSeedData` function so that calling it reliably inserts artist records and associated events for Dave Clarke, Jeff Mills, and Richie Hawtin. Verify the function clears any stale/empty state before re-seeding, persists all three artist records with correct fields (id, name, imageUrl, genre), and stores at least 4–6 upcoming events per artist with all required fields (eventTitle, venue, city, country, dateTime set within the next 2 years, sourceLabel 'RA', eventUrl pointing to ra.co). After the call, `getArtists` must return all three artists and `getEventsByArtist` must return the correct events for each.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Ensure the backend `initializeSeedData` function reliably seeds all three artists (Dave Clarke, Jeff Mills, Richie Hawtin) with their full event data so that after initialization, `getArtists` returns all three and `getEventsByArtist` returns at least 4–6 upcoming events per artist. Fix any state-clearing or insertion logic that prevents seeded data from persisting across calls.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Refactor the backend `initializeSeedData` function so that all three artists (Dave Clarke, Jeff Mills, Richie Hawtin) and their full event datasets are hard-coded directly inside the function body. The function must: (1) clear all existing artist and event maps before re-inserting; (2) insert Dave Clarke with exactly the 9 RA events provided by the user (Vancouver 6 Mar 2025, Toronto 7 Mar 2025, Nancy 13 Mar 2025, Paris Mia Mao 14 Mar 2025, London fabric 4 Apr 2025, Brighton Concorde 2 15 May 2025, Belgium Klein Strand 10 Jul 2026, Cardiff District Cardiff 24 Jul 2025, Hellissandur Iceland 12 Aug 2027); (3) insert Jeff Mills with at least 5 upcoming RA-style events (Berlin Tresor, Detroit Movement Festival, Paris Rex Club, Tokyo, Amsterdam); (4) insert Richie Hawtin with at least 5 upcoming RA-style events (Berlin Berghain, New York Output, Barcelona Sonar, London fabric, Tokyo Womb); (5) all event records must include: eventTitle, venue, city, country, dateTime (ISO timestamp), sourceLabel 'RA', eventUrl pointing to ra.co. After the call, `getArtists` must return all three artists and `getEventsByArtist` must return the full event list for each.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Change the backend actor's initialization behavior so that `initializeSeedData` is called automatically during canister upgrade or first deploy (e.g. via the actor's implicit initialization expression or a system `postupgrade` hook), ensuring the seed data is present without requiring any manual admin button click. The AdminInitButton should remain available for re-seeding but must not be the only path to having data.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Audit and fix the backend `initializeSeedData` function to ensure all three artist records (Dave Clarke, Jeff Mills, Richie Hawtin) are inserted with their complete event datasets hard-coded directly in the function body. The function must: (1) clear all existing artist and event maps before re-inserting; (2) insert Dave Clarke with exactly 9 RA events: Vancouver TBA venue Fri 6 Mar 2025, Toronto 821 Runnymede Rd Sat 7 Mar 2025, Nancy LA STATION NANCY Fri 13 Mar 2025, Paris Mia Mao Sat 14 Mar 2025, London fabric Sat 4 Apr 2025, Brighton Concorde 2 Fri 15 May 2025, Belgium Klein Strand Fri 10 Jul 2026, Cardiff District Cardiff Fri 24 Jul 2025, Hellissandur Iceland Thu 12 Aug 2027; (3) insert Jeff Mills with at least 5 upcoming RA-style events (Berlin Tresor, Detroit Movement Festival, Paris Rex Club, Tokyo club date, Amsterdam); (4) insert Richie Hawtin with at least 5 upcoming RA-style events (Berlin Berghain, New York Output, Barcelona Sonar, London fabric, Tokyo Womb); (5) every event record must include eventTitle, venue, city, country, dateTime (ISO timestamp), sourceLabel 'RA', and eventUrl pointing to ra.co. After the call, `getArtists` must return all three artists and `getEventsByArtist` must return the full event list for each artist.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Ensure `initializeSeedData` is called automatically via the actor's `postupgrade` system hook (and on first deploy via an initialization expression) so that seed data is always present without requiring a manual admin button click. The AdminInitButton must remain available for manual re-seeding.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Audit and fix the backend `initializeSeedData` function to guarantee Richie Hawtin's event records are hard-coded, persisted, and returned by `getEventsByArtist`. The function must: (1) clear all existing artist and event maps before re-inserting; (2) insert Richie Hawtin with at least 5 upcoming RA-style events — Berlin Berghain, New York Output, Barcelona Sónar, London fabric, Tokyo Womb — each with a dateTime ISO timestamp set within the next 2 years, sourceLabel 'RA', and an eventUrl pointing to ra.co; (3) retain the existing hard-coded event sets for Dave Clarke (9 events) and Jeff Mills (5 events) unchanged; (4) ensure the `postupgrade` system hook calls `initializeSeedData` so data is always present on deploy without manual intervention. After the call, `getEventsByArtist` queried with Richie Hawtin's artist ID must return the full list of his seeded events.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Replace Richie Hawtin's placeholder event data with real event: 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' on Fri, 27 Feb. User is providing real event data to seed into the backend for Richie Hawtin.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "In the backend `initializeSeedData` function, replace all placeholder event records for Richie Hawtin with real event data. Add the following confirmed real event for Richie Hawtin: event title 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', venue TBA, city Detroit, country USA, dateTime Friday 27 February 2026 (use an appropriate upcoming ISO timestamp), sourceLabel 'RA', eventUrl pointing to ra.co. Remove or overwrite any existing placeholder/dummy events for Richie Hawtin that do not correspond to real events. Retain all existing hard-coded events for Dave Clarke (9 events) and Jeff Mills (5 events) unchanged. Ensure `getEventsByArtist` queried with Richie Hawtin's artist ID returns this real event alongside any other real events already seeded for him.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "On the frontend, ensure that after the seed data update the ArtistEventPopup for Richie Hawtin displays the real event 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' on Fri 27 Feb with venue, city (Detroit), date/time, and a link to the RA event URL. The event card on the Discover page must also show this real event in the main sorted event list.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Audit and rewrite the `initializeSeedData` function in `backend/main.mo` so that Richie Hawtin's event records are definitively hard-coded, inserted, and persisted. The function must: (1) clear all existing artist and event maps before re-inserting; (2) insert Richie Hawtin with at least the following real event hard-coded directly: event title 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', venue TBA, city Detroit, country USA, dateTime Friday 27 February 2026 (ISO timestamp), sourceLabel 'RA', eventUrl 'https://ra.co'; plus at least 4 additional RA-style upcoming events (e.g. Berlin Berghain, New York Output, Barcelona Sónar, London fabric, Tokyo Womb) each with a valid future dateTime ISO timestamp; (3) retain all existing hard-coded events for Dave Clarke (9 events) and Jeff Mills (5 events) unchanged; (4) ensure `getEventsByArtist` queried with Richie Hawtin's exact artist ID returns all his seeded events. Also confirm the `postupgrade` system hook calls `initializeSeedData` so data is always present on deploy without manual intervention.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Replace Jeff Mills' placeholder/existing event data in the backend `initializeSeedData` function with the following 16 real RA events: (1) Thu 26 Feb - smartbar, Chicago - 'Live at Liquid Room 30th Anniversary'; (2) Fri 27 Feb - Lincoln Factory, Detroit - 'Live at Liquid Room Anniversary'; (3) Fri 27 Feb - BERHTA, Washington DC - 'Detroit Love Weekend Pass'; (4) Sat 28 Feb - BERHTA, Washington DC - 'Detroit Love Day 2'; (5) Fri 6 Mar - 1015 Folsom, San Francisco - 'Live at Liquid Room Anniversary'; (6) Sat 7 Mar - Palace of Fine Arts, San Francisco - 'Metropolis Metropolis'; (7) Sun 8 Mar - TBA, Los Angeles - 'WORK presents'; (8) Fri 13 Mar - TBA, Toronto - 'Format x Apollo'; (9) Sat 14 Mar - Knockdown Center, New York City - 'Live at Liquid Room Anniversary'; (10) Sun 15 Mar - Société des arts technologiques, Montreal; (11) Fri 27 Mar - 1Fox Precinct, Johannesburg; (12) Sat 28 Mar - Apollo Warehouse, Cape Town - 'Live at Liquid Room 30th Anniversary'; (13) Thu 2 Apr - KALT, Strasbourg; (14) Sat 6 Jun - Amsterdamse Bos, Amsterdam - '909 Festival 2026'; (15) Sat 25 Jul - Boston Manor Park, London - 'Junction 2 x fabric'; (16) Wed 29 Jul - Amsterdamse Bos, Amsterdam - 'Dekmantel Festival 2026'. All events must include sourceLabel 'RA' and eventUrl pointing to ra.co. Retain all existing hard-coded events for Dave Clarke (9 events) and Richie Hawtin unchanged.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "In the backend `initializeSeedData` function in `backend/main.mo`, replace all existing event records for Jeff Mills with the following 16 real RA events, all with sourceLabel 'RA' and eventUrl 'https://ra.co': (1) 'Live at Liquid Room 30th Anniversary' — smartbar, Chicago, USA, Thu 26 Feb 2026; (2) 'Live at Liquid Room Anniversary' — Lincoln Factory, Detroit, USA, Fri 27 Feb 2026; (3) 'Detroit Love Weekend Pass' — BERHTA, Washington DC, USA, Fri 27 Feb 2026; (4) 'Detroit Love Day 2' — BERHTA, Washington DC, USA, Sat 28 Feb 2026; (5) 'Live at Liquid Room Anniversary' — 1015 Folsom, San Francisco, USA, Fri 6 Mar 2026; (6) 'Metropolis Metropolis' — Palace of Fine Arts, San Francisco, USA, Sat 7 Mar 2026; (7) 'WORK presents' — TBA, Los Angeles, USA, Sun 8 Mar 2026; (8) 'Format x Apollo' — TBA, Toronto, Canada, Fri 13 Mar 2026; (9) 'Live at Liquid Room Anniversary' — Knockdown Center, New York City, USA, Sat 14 Mar 2026; (10) 'Jeff Mills at SAT' — Société des arts technologiques, Montreal, Canada, Sun 15 Mar 2026; (11) 'Jeff Mills at 1Fox Precinct' — 1Fox Precinct, Johannesburg, South Africa, Fri 27 Mar 2026; (12) 'Live at Liquid Room 30th Anniversary' — Apollo Warehouse, Cape Town, South Africa, Sat 28 Mar 2026; (13) 'Jeff Mills at KALT' — KALT, Strasbourg, France, Thu 2 Apr 2026; (14) '909 Festival 2026' — Amsterdamse Bos, Amsterdam, Netherlands, Sat 6 Jun 2026; (15) 'Junction 2 x fabric' — Boston Manor Park, London, UK, Sat 25 Jul 2026; (16) 'Dekmantel Festival 2026' — Amsterdamse Bos, Amsterdam, Netherlands, Wed 29 Jul 2026. Retain all existing hard-coded events for Dave Clarke (9 events) and Richie Hawtin unchanged. Ensure the `postupgrade` system hook continues to call `initializeSeedData` so data is always present on deploy. After the call, `getEventsByArtist` queried with Jeff Mills' artist ID must return all 16 events.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Replace Dave Clarke's existing event data in the backend `initializeSeedData` function with the following 9 real RA events, all with sourceLabel 'RA' and eventUrl 'https://ra.co': (1) TBA venue, Vancouver, Canada, Fri 6 Mar 2026; (2) 821 Runnymede Rd, Toronto, Canada, Sat 7 Mar 2026; (3) TBA (WONDER RAVE), Nancy, France, Fri 13 Mar 2026; (4) Mia Mao (OFF THE GRID), Paris, France, Sat 14 Mar 2026; (5) fabric, London, UK, Sat 4 Apr 2026; (6) Concorde 2 (City Wall x Dave Clarke), Brighton, UK, Fri 15 May 2026; (7) Klein Strand (Ostend Beach Festival 2026), Ostend, Belgium, Fri 10 Jul 2026; (8) District Cardiff (Luvmuzik presents Dave Clarke & Gary Beck), Cardiff, UK, Fri 24 Jul 2026; (9) Hellissandur (Iceland Eclipse), Iceland, Thu 12 Aug 2027. Retain all existing hard-coded events for Jeff Mills (16 events) and Richie Hawtin unchanged. Ensure `getEventsByArtist` queried with Dave Clarke's artist ID returns all 9 events.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "In `backend/main.mo`, inside the `initializeSeedData` function, replace all existing event records for Dave Clarke with exactly the following 9 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Live Techno Experience with Dave Clarke' — venue TBA, Vancouver, Canada, Fri 6 Mar 2026, dateTime ISO '2026-03-06T22:00:00Z'; (2) eventTitle 'Dave Clarke in Toronto' — venue '821 Runnymede Rd', Toronto, Canada, Sat 7 Mar 2026, dateTime ISO '2026-03-07T22:00:00Z'; (3) eventTitle 'WONDER RAVE' — venue 'LA STATION NANCY', Nancy, France, Fri 13 Mar 2026, dateTime ISO '2026-03-13T22:00:00Z'; (4) eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — venue 'Mia Mao', Paris, France, Sat 14 Mar 2026, dateTime ISO '2026-03-14T22:00:00Z'; (5) eventTitle 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — venue 'fabric', London, UK, Sat 4 Apr 2026, dateTime ISO '2026-04-04T22:00:00Z'; (6) eventTitle 'City Wall x Dave Clarke' — venue 'Concorde 2', Brighton, UK, Fri 15 May 2026, dateTime ISO '2026-05-15T22:00:00Z'; (7) eventTitle 'Ostend Beach Festival 2026' — venue 'Klein Strand', Ostend, Belgium, Fri 10 Jul 2026, dateTime ISO '2026-07-10T18:00:00Z'; (8) eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck' — venue 'District Cardiff', Cardiff, UK, Fri 24 Jul 2026, dateTime ISO '2026-07-24T22:00:00Z'; (9) eventTitle 'Iceland Eclipse' — venue 'Hellissandur', Hellissandur, Iceland, Thu 12 Aug 2027, dateTime ISO '2027-08-12T20:00:00Z'. All 9 events must be associated with Dave Clarke's artist ID. Retain all existing hard-coded events for Jeff Mills (16 events) and Richie Hawtin unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` so data is present on every deploy without manual intervention. After the call, `getEventsByArtist` queried with Dave Clarke's artist ID must return all 9 events.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "On the frontend, ensure that after the seed data update the ArtistEventPopup for Dave Clarke correctly displays all 9 real events. Each event row must show: event title, venue, city, date/time formatted for the user's locale, and a clickable link to 'https://ra.co'. Events must be sorted chronologically by date. The Discover page event list must also include all 9 Dave Clarke events alongside Jeff Mills' and Richie Hawtin's events, sorted chronologically, each showing the 'RA' source badge.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Ensure the backend `initializeSeedData` function is called automatically via the actor's `postupgrade` system hook AND via an initialization expression so that seed data for Dave Clarke, Jeff Mills, and Richie Hawtin is always present immediately after any deploy — including production — without any manual admin button click. The `postupgrade` hook must unconditionally call `initializeSeedData` on every upgrade. After deploy, `getArtists` must return all three artists and `getEventsByArtist` must return their full event lists.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Add a 'Plan Trip' button on each event card that opens a trip-planning modal pre-filled with the event date, city, and artist. User sets home city/airport in their profile once. Modal auto-suggests travel dates (arrive day before, depart day after), includes a budget selector, and generates deep links to Skyscanner and Booking.com pre-filled with origin, destination, and dates.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Replace generic 'https://ra.co' event URLs with direct links to the specific RA event/ticket page for each event. User will provide the exact RA ticket page URLs manually at a later stage.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Audit and fix `backend/main.mo` to ensure the `initializeSeedData` function correctly inserts all three artists (Dave Clarke, Jeff Mills, Richie Hawtin) with their full event datasets, and that the `postupgrade` system hook unconditionally calls `initializeSeedData` on every canister upgrade so seed data is always present immediately after deploy without any manual admin button click. After deploy, `getArtists` must return all three artists and `getEventsByArtist` must return the full event list for each artist.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Fix the Skyscanner deep-link URL generation so that it uses valid IATA airport codes or city slugs that Skyscanner recognizes, rather than full city/location names (e.g. 'hellissandur') that result in 'Page not found'. The link must resolve to a valid Skyscanner search results page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Audit and fix the backend `backend/main.mo` actor so that the canister starts and remains in a running (not stopped) state after deploy. The error IC0508 indicates the canister is stopped; ensure there are no syntax errors, traps at initialization time, or upgrade hook panics that cause the canister to halt. The `postupgrade` system hook must call `initializeSeedData` without throwing or trapping. After deploy, the canister must accept query and update calls including `getArtists`, `getAllEvents`, and `getEventsByArtist` from anonymous callers without returning IC0508 or any Reject code 5 error.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "After fixing the canister halt, verify and re-confirm that the `initializeSeedData` function in `backend/main.mo` is called unconditionally by the `postupgrade` system hook on every upgrade. The function must: (1) clear all existing artist and event maps before re-inserting; (2) insert Dave Clarke with all 9 RA events; (3) insert Jeff Mills with all 16 RA events; (4) insert Richie Hawtin with his seeded RA events including 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' in Detroit plus additional events. After deploy, `getArtists` must return all three artists and `getEventsByArtist` must return the full event list for each artist without requiring any manual admin button click.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Replace generic 'https://ra.co' ticket links with deep links to a dedicated event ticketing aggregator (e.g. Dice.fm, Resident Advisor event search, or Songkick) pre-filled with the artist name or event details, similar to how Skyscanner is used for flights — so users land on a relevant ticket search/results page rather than the RA homepage.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add an 'Add to Radar' button on each event card (Discover page and ArtistEventPopup). When clicked by an authenticated user, the event is saved and appears on the user's My Radar page. If unauthenticated, prompt login.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Extend the backend data model to support per-user saved events: add a stable `HashMap<Principal, [Text]>` (or equivalent) that stores a list of event IDs a user has added to their radar. Expose two new update functions: `addEventToRadar(eventId: Text) : async Result` and `removeEventFromRadar(eventId: Text) : async Result`, both requiring an authenticated caller. Expose one new query function: `getRadarEvents() : async [Event]` that returns the full event records for all event IDs saved by the calling principal.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Techno Beacon",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
