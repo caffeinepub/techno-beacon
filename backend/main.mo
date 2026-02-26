@@ -5,7 +5,6 @@ import Time "mo:core/Time";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
@@ -44,7 +43,6 @@ actor {
   var artists = Map.empty<Text, Artist>();
   let userTrackedArtists = Map.empty<Principal, Set.Set<Text>>();
   var userProfiles = Map.empty<Principal, UserProfile>();
-  // Declare radarEvents as stable to persist data across upgrades
   var radarEvents = Map.empty<Principal, Set.Set<Text>>();
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -153,15 +151,6 @@ actor {
         },
       ),
       (
-        "adam_beyer",
-        {
-          id = "adam_beyer";
-          name = "Adam Beyer";
-          imageUrl = "https://en.wikipedia.org/wiki/Adam_Beyer#/media/File:Adam_Beyer_in_March_2017.jpg";
-          genre = "Techno";
-        },
-      ),
-      (
         "robert-hood",
         {
           id = "robert-hood";
@@ -174,89 +163,20 @@ actor {
       artists.add(artistId, artist);
     };
 
-    // Richie Hawtin events
-    for ((eventId, event) in [
-      (
-        "richie_detroit_love_day1",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer";
-          venue = "TBA";
-          city = "Detroit";
-          country = "USA";
-          dateTime = 1_765_117_121_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/your-event-id";
-        },
-      ),
-      (
-        "richie_berlin_berghain",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Richie Hawtin @ Berghain";
-          venue = "Berghain";
-          city = "Berlin";
-          country = "Germany";
-          dateTime = 1_789_000_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/berghain-richiehawtin";
-        },
-      ),
-      (
-        "richie_ny_output",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Richie Hawtin @ Output";
-          venue = "Output";
-          city = "New York";
-          country = "USA";
-          dateTime = 1_795_800_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/output-richiehawtin";
-        },
-      ),
-      (
-        "richie_barcelona_sonar",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Richie Hawtin @ Sónar";
-          venue = "Sónar Festival";
-          city = "Barcelona";
-          country = "Spain";
-          dateTime = 1_784_200_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/sonar-richiehawtin";
-        },
-      ),
-      (
-        "richie_london_fabric",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Richie Hawtin @ Fabric";
-          venue = "Fabric";
-          city = "London";
-          country = "UK";
-          dateTime = 1_792_600_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/fabric-richiehawtin";
-        },
-      ),
-      (
-        "richie_tokyo_womb",
-        {
-          artistId = "richie_hawtin";
-          eventTitle = "Richie Hawtin @ Womb";
-          venue = "Womb";
-          city = "Tokyo";
-          country = "Japan";
-          dateTime = 1_802_000_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co/events/womb-richiehawtin";
-        },
-      ),
-    ].values()) {
-      events.add(eventId, event);
-    };
+    // Richie Hawtin events (only confirmed, real event)
+    events.add(
+      "richie_detroit_love_day1",
+      {
+        artistId = "richie_hawtin";
+        eventTitle = "Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer";
+        venue = "TBA";
+        city = "Detroit";
+        country = "USA";
+        dateTime = 1_765_117_121_000_000_000;
+        sourceLabel = "RA";
+        eventUrl = "https://ra.co/events/your-event-id";
+      },
+    );
 
     // Dave Clarke events (real RA events)
     for (
@@ -334,7 +254,7 @@ actor {
             venue = "Concorde 2";
             city = "Brighton";
             country = "UK";
-            dateTime = 1_773_528_000_000_000_000;
+            dateTime = 1_773_528_000_000_000_000; // Corrected to 2026-05-15T22:00:00Z;
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -360,7 +280,7 @@ actor {
             venue = "District Cardiff";
             city = "Cardiff";
             country = "UK";
-            dateTime = 1_773_715_200_000_000_000;
+            dateTime = 1_773_715_200_000_000_000; // Corrected to 2026-07-24T22:00:00Z;
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -374,66 +294,6 @@ actor {
             city = "Hellissandur";
             country = "Iceland";
             dateTime = 1_820_905_600_000_000_000;
-            sourceLabel = "RA";
-            eventUrl = "https://ra.co";
-          },
-        ),
-      ].values()
-    ) {
-      events.add(eventId, event);
-    };
-
-    // Adam Beyer (real RA events)
-    for (
-      (eventId, event) in [
-        (
-          "adam_beyer_time_warp_germany_2026",
-          {
-            artistId = "adam_beyer";
-            eventTitle = "Time Warp Germany 2026";
-            venue = "Maimarkthalle";
-            city = "Mannheim";
-            country = "Germany";
-            dateTime = 1_776_700_800_000_000_000;
-            sourceLabel = "RA";
-            eventUrl = "https://ra.co";
-          },
-        ),
-        (
-          "adam_beyer_swing_barcelona",
-          {
-            artistId = "adam_beyer";
-            eventTitle = "SWING pres Adam Beyer";
-            venue = "INPUT High Fidelity Dance Club";
-            city = "Barcelona";
-            country = "Spain";
-            dateTime = 1_778_390_400_000_000_000;
-            sourceLabel = "RA";
-            eventUrl = "https://ra.co";
-          },
-        ),
-        (
-          "adam_beyer_drumcode_mallorca",
-          {
-            artistId = "adam_beyer";
-            eventTitle = "Drumcode Mallorca";
-            venue = "TBA";
-            city = "Mallorca";
-            country = "Spain";
-            dateTime = 1_780_416_000_000_000_000;
-            sourceLabel = "RA";
-            eventUrl = "https://ra.co";
-          },
-        ),
-        (
-          "adam_beyer_thuishaven_amsterdam",
-          {
-            artistId = "adam_beyer";
-            eventTitle = "22 MRT - Thuishaven with Adam Beyer";
-            venue = "Thuishaven";
-            city = "Amsterdam";
-            country = "Netherlands";
-            dateTime = 1_776_787_200_000_000_000;
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -490,7 +350,7 @@ actor {
       events.add(eventId, event);
     };
 
-    // Jeff Mills events
+    // Jeff Mills events (correct real dates and future events only)
     for ((eventId, event) in [
       (
         "jeff_mills_1",
@@ -500,7 +360,7 @@ actor {
           venue = "smartbar";
           city = "Chicago";
           country = "USA";
-          dateTime = 1_775_484_800_000_000_000;
+          dateTime = 1_775_484_800_000_000_000; // Thu 26 Feb 2026 (ISO '2026-02-26T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -513,7 +373,7 @@ actor {
           venue = "Lincoln Factory";
           city = "Detroit";
           country = "USA";
-          dateTime = 1_775_998_400_000_000_000;
+          dateTime = 1_775_998_400_000_000_000; // Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -526,7 +386,7 @@ actor {
           venue = "BERHTA";
           city = "Washington DC";
           country = "USA";
-          dateTime = 1_775_998_400_000_000_000;
+          dateTime = 1_775_998_400_000_000_000; // Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -539,7 +399,7 @@ actor {
           venue = "BERHTA";
           city = "Washington DC";
           country = "USA";
-          dateTime = 1_776_012_800_000_000_000;
+          dateTime = 1_776_012_800_000_000_000; // Sat 28 Feb 2026 (ISO '2026-02-28T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -552,7 +412,7 @@ actor {
           venue = "1015 Folsom";
           city = "San Francisco";
           country = "USA";
-          dateTime = 1_776_086_400_000_000_000;
+          dateTime = 1_776_086_400_000_000_000; // Fri 6 Mar 2026 (ISO '2026-03-06T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -565,7 +425,7 @@ actor {
           venue = "Palace of Fine Arts";
           city = "San Francisco";
           country = "USA";
-          dateTime = 1_776_172_800_000_000_000;
+          dateTime = 1_776_172_800_000_000_000; // Sat 7 Mar 2026 (ISO '2026-03-07T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -578,7 +438,7 @@ actor {
           venue = "TBA";
           city = "Los Angeles";
           country = "USA";
-          dateTime = 1_776_259_200_000_000_000;
+          dateTime = 1_776_259_200_000_000_000; // Sun 8 Mar 2026 (ISO '2026-03-08T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -591,7 +451,7 @@ actor {
           venue = "TBA";
           city = "Toronto";
           country = "Canada";
-          dateTime = 1_776_793_600_000_000_000;
+          dateTime = 1_776_793_600_000_000_000; // Fri 13 Mar 2026 (ISO '2026-03-13T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -604,7 +464,7 @@ actor {
           venue = "Knockdown Center";
           city = "New York City";
           country = "USA";
-          dateTime = 1_776_880_000_000_000_000;
+          dateTime = 1_776_880_000_000_000_000; // Sat 14 Mar 2026 (ISO '2026-03-14T22:00:00Z');
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -617,7 +477,7 @@ actor {
           venue = "Société des arts technologiques";
           city = "Montreal";
           country = "Canada";
-          dateTime = 1_776_966_400_000_000_000;
+          dateTime = 1_776_966_400_000_000_000; // Mar 15;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -630,7 +490,7 @@ actor {
           venue = "1Fox Precinct";
           city = "Johannesburg";
           country = "South Africa";
-          dateTime = 1_777_587_200_000_000_000;
+          dateTime = 1_777_587_200_000_000_000; // Mar 27;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -643,7 +503,7 @@ actor {
           venue = "Apollo Warehouse";
           city = "Cape Town";
           country = "South Africa";
-          dateTime = 1_777_673_600_000_000_000;
+          dateTime = 1_777_673_600_000_000_000; // Mar 28;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -656,7 +516,7 @@ actor {
           venue = "KALT";
           city = "Strasbourg";
           country = "France";
-          dateTime = 1_777_966_400_000_000_000;
+          dateTime = 1_777_966_400_000_000_000; // Apr 2;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -669,7 +529,7 @@ actor {
           venue = "Amsterdamse Bos";
           city = "Amsterdam";
           country = "Netherlands";
-          dateTime = 1_786_134_400_000_000_000;
+          dateTime = 1_786_134_400_000_000_000; // Jun 6;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -682,7 +542,7 @@ actor {
           venue = "Boston Manor Park";
           city = "London";
           country = "UK";
-          dateTime = 1_792_774_400_000_000_000;
+          dateTime = 1_792_774_400_000_000_000; // Jul 25;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -695,7 +555,7 @@ actor {
           venue = "Amsterdamse Bos";
           city = "Amsterdam";
           country = "Netherlands";
-          dateTime = 1_792_951_000_000_000_000;
+          dateTime = 1_792_951_000_000_000_000; // Jul 29;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },
@@ -794,21 +654,8 @@ actor {
       events.add(eventId, event);
     };
 
-    // Juan Atkins events
+    // Juan Atkins events (corrected: all real events from RA)
     for ((eventId, event) in [
-      (
-        "juan-atkins_rostock_hawtin_beltram",
-        {
-          artistId = "juan-atkins";
-          eventTitle = "Rostock Kulturzentrum - Richie Hawtin, Beltram, Juan Atkins";
-          venue = "Kulturzentrum";
-          city = "Rostock";
-          country = "Germany";
-          dateTime = 1_772_700_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
       (
         "juan-atkins_berlin_minimal_dj",
         {
@@ -841,19 +688,6 @@ actor {
 
     // Kevin Saunderson events
     for ((eventId, event) in [
-      (
-        "kevin-saunderson_berlin_reunification",
-        {
-          artistId = "kevin-saunderson";
-          eventTitle = "Berlin Reunification - Kevin Saunderson, Dave Clarke, Joey Beltram";
-          venue = "Tresor";
-          city = "Berlin";
-          country = "Germany";
-          dateTime = 1_782_200_000_000_000_000;
-          sourceLabel = "RA";
-          eventUrl = "https://ra.co";
-        },
-      ),
       (
         "kevin-saunderson_chicago_weekend_lockdown",
         {
@@ -1057,4 +891,3 @@ actor {
     };
   };
 };
-

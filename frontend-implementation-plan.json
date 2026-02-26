@@ -1,52 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Robert Hood artist with 3 real RA events to seed data - Frontend",
+  "title": "Remove Rostock event from seed data lookup",
   "requirements": [
     {
-      "id": "REQ-76",
-      "summary": "Update IATA/city slug lookup table to include Medellin (MDE), Edinburgh (EDI), and The Hague (AMS) for Robert Hood's event cities",
+      "id": "REQ-105",
+      "summary": "Remove all Kulturzentrum Rostock event entries from frontend event ID lookup table",
       "acceptanceCriteria": [
-        "'Medellin' resolves to 'MDE' in the IATA lookup table.",
-        "'Edinburgh' resolves to 'EDI' in the IATA lookup table.",
-        "'The Hague' resolves to 'AMS' (nearest major airport) in the IATA lookup table.",
-        "Skyscanner deep-link URLs constructed for Robert Hood's events use the resolved IATA codes rather than raw city name strings.",
-        "Booking.com deep-link URLs for Robert Hood's events use the correct city name in the `ss` query parameter."
+        "No entry in `eventIdLookup.ts` has a composite key whose dateTime nanoseconds correspond to any timestamp on 2026-03-05.",
+        "No entry references a venue or city string containing 'Rostock' or 'Kulturzentrum'.",
+        "The Add to Radar functionality for all other events continues to work correctly using their existing lookup entries."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/travelLinks.ts",
+          "path": "frontend/src/lib/eventIdLookup.ts",
           "operation": "modify",
-          "description": "Add three new city-to-IATA-code mappings to the cityToIATA lookup table: 'medellin' -> 'MDE', 'edinburgh' -> 'EDI', and 'the hague' -> 'AMS'. Ensure the normalizeCityName function correctly handles these city names and that buildSkyscannerUrl and buildBookingUrl use the lookup table to resolve IATA codes before constructing deep-link URLs."
-        }
-      ]
-    },
-    {
-      "id": "REQ-77",
-      "summary": "Ensure Robert Hood appears dynamically on Artists page, Discover page artist roster, and opens ArtistEventPopup with his 3 events",
-      "acceptanceCriteria": [
-        "Robert Hood appears on the Artists page as an artist card showing his name and event count of 3.",
-        "Robert Hood's name appears in the Discover page artist roster strip.",
-        "Clicking Robert Hood's name or avatar on either page opens the ArtistEventPopup.",
-        "The ArtistEventPopup for Robert Hood displays all 3 events sorted chronologically: Terminal V (Apr 18), The Crave (Jun 6), Dreaming Festival (Jun 27).",
-        "Each event row in the popup shows event title, venue, city, date/time, Dice.fm and Songkick ticket-search buttons, and an Add to Radar toggle.",
-        "Robert Hood's events appear in the Discover page main event list sorted chronologically alongside all other seeded events."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ArtistsPage.tsx",
-          "operation": "modify",
-          "description": "Verify that the ArtistsPage component uses the useArtists hook to fetch all artists dynamically from the backend and renders them without hardcoded filtering. Confirm that when the backend returns Robert Hood, his artist card appears in the grid with his name, genre ('Detroit Techno / Minimal'), event count (3), and a clickable avatar/name that opens the ArtistEventPopup. No code changes are expected unless hardcoded artist lists or filters are present that would exclude Robert Hood."
-        },
-        {
-          "path": "frontend/src/pages/DiscoverPage.tsx",
-          "operation": "modify",
-          "description": "Verify that the DiscoverPage component uses the useArtists and useAllEvents hooks to fetch all artists and events dynamically from the backend. Confirm that Robert Hood appears in the artist roster strip and that his 3 events (Terminal V Festival 2026, The Crave Festival 2026, Dreaming Festival 2026) appear in the main event list sorted chronologically alongside all other seeded events. Ensure no hardcoded artist name lists or filtering logic exclude Robert Hood or his events."
-        },
-        {
-          "path": "frontend/src/components/ArtistEventPopup.tsx",
-          "operation": "modify",
-          "description": "Verify that the ArtistEventPopup component uses the useEventsByArtist hook to fetch events dynamically for any artist ID, including Robert Hood's. Confirm that when opened for Robert Hood, the popup displays all 3 events sorted chronologically with event title, venue, city, date/time, Dice.fm and Songkick ticket-search buttons, and an Add to Radar toggle. Ensure no hardcoded logic prevents Robert Hood's events from rendering correctly."
+          "description": "Perform an exhaustive audit and removal of every entry whose composite key corresponds to the Kulturzentrum Rostock event (Thu 5 Mar 2026). Search by dateTime nanoseconds matching '2026-03-05T...' timestamps and by any city or venue string containing 'Rostock' or 'Kulturzentrum'. Remove all matching entries across all artist keys (including Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist). Verify no stale lookup entries reference this event ID after removal."
         }
       ]
     }

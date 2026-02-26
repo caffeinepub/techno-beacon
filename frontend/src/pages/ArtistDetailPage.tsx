@@ -1,220 +1,145 @@
-import React from 'react';
-import { useParams, useNavigate } from '@tanstack/react-router';
-import { useGetArtist, useGetEventsByArtist, useGetTrackedArtists, useToggleTrackedArtist } from '../hooks/useQueries';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import React, { useEffect } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { useGetArtist, useGetEventsByArtist } from '../hooks/useQueries';
+import EventCard from '../components/EventCard';
+import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import SourceBadge from '../components/SourceBadge';
-import { ArrowLeft, Star, StarOff, ExternalLink, MapPin, Calendar } from 'lucide-react';
-import { toast } from 'sonner';
+import { Link } from '@tanstack/react-router';
 
 export default function ArtistDetailPage() {
-  const { artistId } = useParams({ strict: false }) as { artistId: string };
-  const navigate = useNavigate();
-  const { identity } = useInternetIdentity();
+  const { artistId } = useParams({ strict: false }) as { artistId?: string };
 
-  const { data: artist, isLoading: artistLoading } = useGetArtist(artistId ?? null);
-  const { data: events = [], isLoading: eventsLoading } = useGetEventsByArtist(artistId ?? null);
-  const { data: trackedArtists = [] } = useGetTrackedArtists();
-  const toggleMutation = useToggleTrackedArtist();
+  const {
+    data: artist,
+    isLoading: artistLoading,
+    isError: artistError,
+    error: artistErrorObj,
+    refetch: refetchArtist,
+  } = useGetArtist(artistId ?? null);
 
-  const isTracked = trackedArtists.includes(artistId ?? '');
+  const {
+    data: events = [],
+    isLoading: eventsLoading,
+    isError: eventsError,
+    error: eventsErrorObj,
+    refetch: refetchEvents,
+  } = useGetEventsByArtist(artistId ?? null);
+
   const isLoading = artistLoading || eventsLoading;
+  const hasError = artistError || eventsError;
 
-  const sortedEvents = [...events].sort(
+  useEffect(() => {
+    if (artistError && artistErrorObj) {
+      console.error('[ArtistDetailPage] Failed to load artist:', artistErrorObj);
+    }
+    if (eventsError && eventsErrorObj) {
+      console.error('[ArtistDetailPage] Failed to load events:', eventsErrorObj);
+    }
+  }, [artistError, artistErrorObj, eventsError, eventsErrorObj]);
+
+  const handleRetry = () => {
+    refetchArtist();
+    refetchEvents();
+  };
+
+  // Defensive filter: exclude any stale Rostock / Kulturzentrum events
+  const sanitisedEvents = events.filter((event) => {
+    const cityLower = event.city.toLowerCase();
+    const venueLower = event.venue.toLowerCase();
+    if (cityLower.includes('rostock')) return false;
+    if (venueLower.includes('kulturzentrum')) return false;
+    return true;
+  });
+
+  const sortedEvents = [...sanitisedEvents].sort(
     (a, b) => Number(a.dateTime) - Number(b.dateTime)
   );
 
-  const handleToggleTrack = async () => {
-    if (!identity) {
-      toast.error('Please log in to follow artists', {
-        description: 'Use the Login button in the top navigation.',
-      });
-      return;
-    }
-    if (!artistId) return;
-    try {
-      const nowTracked = await toggleMutation.mutateAsync(artistId);
-      toast.success(nowTracked ? `Following ${artist?.name}` : `Unfollowed ${artist?.name}`);
-    } catch (err) {
-      toast.error('Failed to update tracking');
-    }
-  };
-
-  const formatDate = (dateTime: bigint) => {
-    const ms = Number(dateTime) / 1_000_000;
-    return new Date(ms).toLocaleDateString('en-GB', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const formatTime = (dateTime: bigint) => {
-    const ms = Number(dateTime) / 1_000_000;
-    return new Date(ms).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Skeleton className="h-8 w-32 mb-8" />
-          <Skeleton className="h-48 w-full mb-6" />
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!artist) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground font-mono text-xl mb-4">Artist not found.</p>
-          <Button variant="outline" onClick={() => navigate({ to: '/artists' })}>
-            Back to Artists
-          </Button>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Back button */}
-        <button
-          onClick={() => navigate({ to: '/artists' })}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 font-mono text-sm"
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Back link */}
+        <Link
+          to="/artists"
+          className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
-          <ArrowLeft className="w-4 h-4" />
-          BACK TO ARTISTS
-        </button>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          All Artists
+        </Link>
 
-        {/* Artist header */}
-        <div className="flex flex-col sm:flex-row gap-6 mb-10">
-          <div className="w-32 h-32 shrink-0 rounded overflow-hidden bg-card border border-border">
-            {artist.imageUrl ? (
-              <img
-                src={artist.imageUrl}
-                alt={artist.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl font-bold font-mono text-muted-foreground">
-                {artist.name.charAt(0)}
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold font-mono text-foreground tracking-tight mb-2">
-              {artist.name}
-            </h1>
-            {artist.genre && (
-              <Badge variant="outline" className="mb-4 font-mono text-xs">
-                {artist.genre}
-              </Badge>
-            )}
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleToggleTrack}
-                disabled={toggleMutation.isPending}
-                variant={isTracked ? 'secondary' : 'default'}
-                size="sm"
-                className="font-mono"
+        {/* Error state */}
+        {hasError && !isLoading && (
+          <div className="mb-8 flex items-start gap-4 p-5 bg-destructive/10 border border-destructive/40 rounded-sm">
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-mono font-semibold text-destructive mb-1">
+                Unable to connect to the backend — please try again shortly.
+              </p>
+              <button
+                onClick={handleRetry}
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-neon-amber hover:text-neon-amber/80 transition-colors mt-2"
               >
-                {toggleMutation.isPending ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Updating...
-                  </span>
-                ) : isTracked ? (
-                  <span className="flex items-center gap-2">
-                    <StarOff className="w-4 h-4" />
-                    Unfollow
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Star className="w-4 h-4" />
-                    Follow
-                  </span>
-                )}
-              </Button>
-              {!identity && (
-                <span className="text-xs text-muted-foreground font-mono">
-                  Log in to follow this artist
-                </span>
-              )}
+                <RefreshCw className="w-3 h-3" />
+                Retry
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Events */}
-        <div>
-          <h2 className="text-xl font-bold font-mono text-foreground mb-6 tracking-tight">
-            UPCOMING EVENTS ({sortedEvents.length})
-          </h2>
-
-          {sortedEvents.length === 0 ? (
-            <p className="text-muted-foreground font-mono text-center py-12">
-              No upcoming events found.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {sortedEvents.map((event, idx) => (
-                <div
-                  key={`${event.eventTitle}-${idx}`}
-                  className="bg-card border border-border rounded p-4 hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground text-sm leading-snug mb-2">
-                        {event.eventTitle}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground font-mono">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {event.venue}, {event.city}, {event.country}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <SourceBadge source={event.sourceLabel} />
-                      {event.eventUrl && (
-                        <a
-                          href={event.eventUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full rounded" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-48 w-full rounded" />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Artist header */}
+        {!isLoading && artist && (
+          <div className="flex items-start gap-6 mb-10">
+            <img
+              src={artist.imageUrl}
+              alt={artist.name}
+              className="w-24 h-24 rounded object-cover border border-border shrink-0"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  'https://via.placeholder.com/96x96/1a1a1a/666666?text=' +
+                  encodeURIComponent(artist.name.charAt(0));
+              }}
+            />
+            <div>
+              <h1 className="text-3xl font-bold font-mono text-foreground">{artist.name}</h1>
+              <p className="text-sm text-muted-foreground font-mono mt-1">{artist.genre}</p>
+              <p className="text-xs text-muted-foreground font-mono mt-2">
+                {sortedEvents.length} upcoming event{sortedEvents.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Events grid */}
+        {!isLoading && !hasError && sortedEvents.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {sortedEvents.map((event, idx) => (
+              <EventCard
+                key={`${event.artistId}-${event.dateTime}-${idx}`}
+                event={event}
+                artistName={artist?.name ?? event.artistId}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && !hasError && sortedEvents.length === 0 && artist && (
+          <div className="text-center py-20 text-muted-foreground font-mono">
+            No upcoming events for {artist.name}.
+          </div>
+        )}
       </div>
     </main>
   );

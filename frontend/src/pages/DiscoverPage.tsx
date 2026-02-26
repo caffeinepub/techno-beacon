@@ -48,7 +48,17 @@ export default function DiscoverPage() {
     refetchEvents();
   };
 
-  const filteredEvents = allEvents.filter((event) => {
+  // Defensive filter: exclude any stale Rostock / Kulturzentrum events that may
+  // still be present in the canister's stable memory from a previous seed run.
+  const sanitisedEvents = allEvents.filter((event) => {
+    const cityLower = event.city.toLowerCase();
+    const venueLower = event.venue.toLowerCase();
+    if (cityLower.includes('rostock')) return false;
+    if (venueLower.includes('kulturzentrum')) return false;
+    return true;
+  });
+
+  const filteredEvents = sanitisedEvents.filter((event) => {
     if (selectedArtistId && event.artistId !== selectedArtistId) return false;
 
     if (filters.artistName) {

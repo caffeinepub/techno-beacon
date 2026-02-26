@@ -1,39 +1,28 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T18:48:00.501Z",
+  "generatedAt": "2026-02-26T19:59:34.084Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 2,
     "implemented": 0,
     "items": [
       {
-        "id": "REQ-75",
-        "summary": "In the `initializeSeedData` function in `backend/main.mo`, add Robert Hood as a new seeded artist with the following 3 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Dreaming Festival 2026' — venue 'Parque Norte', Medellin, Colombia, Sat 27 Jun 2026, dateTime ISO '2026-06-27T18:00:00Z'; (2) eventTitle 'Terminal V Festival 2026' — venue 'Royal Highland Centre', Edinburgh, UK, Sat 18 Apr 2026, dateTime ISO '2026-04-18T18:00:00Z'; (3) eventTitle 'The Crave Festival 2026' — venue 'Zuiderpark', The Hague, Netherlands, Sat 6 Jun 2026, dateTime ISO '2026-06-06T16:00:00Z'. Robert Hood must have a unique stable artist ID (e.g. 'robert-hood'), name 'Robert Hood', an imageUrl (empty string or placeholder), and genre 'Detroit Techno / Minimal'. All 3 events must be associated with Robert Hood's artist ID. Retain all existing hard-coded events for all other artists (Dave Clarke 9 events, Jeff Mills 16 events, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Adam Beyer) unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so all artists including Robert Hood are present on every deploy without manual intervention. After the call, `getArtists` must return Robert Hood and `getEventsByArtist` queried with Robert Hood's artist ID must return all 3 events.",
+        "id": "REQ-104",
+        "summary": "In the `initializeSeedData` function in `backend/main.mo`, perform an exhaustive search and removal of every event record associated with the Kulturzentrum Rostock event on Thu 5 Mar 2026 across ALL artist arrays — including Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist. Do not rely on prior partial removals; re-audit the full hard-coded event list for every artist and confirm no event with venue 'Kulturzentrum', city 'Rostock', country 'Germany', or dateTime '2026-03-05T...' survives in any artist's event set. After removal, Richie Hawtin must have exactly one seeded event ('Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', TBA venue, Detroit, USA, '2026-02-27T22:00:00Z'). All other artist event datasets must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so the corrected data is present on every deploy.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-76",
-        "summary": "Update the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` to include the cities introduced by Robert Hood's new event data that are not already present: Medellin (MDE), Edinburgh (EDI), The Hague (nearest major: AMS). Ensure the Skyscanner and Booking.com deep-link URL generators resolve these city names correctly using the lookup table before constructing URLs.",
+        "id": "REQ-105",
+        "summary": "In `frontend/src/lib/eventIdLookup.ts`, perform a thorough audit and remove every entry whose composite key could correspond to the Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany) regardless of which artist it is keyed under — including Richie Hawtin, Juan Atkins, and Joey Beltram. Search by dateTime nanoseconds corresponding to '2026-03-05T...' and by any city or venue string matching 'Rostock' or 'Kulturzentrum'. Ensure no stale lookup entry references this event ID.",
         "status": "missing",
         "plannedFiles": [
-          "frontend/src/utils/travelLinks.ts"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-77",
-        "summary": "On the frontend, ensure the Artists page grid and the Discover page artist roster strip automatically include Robert Hood once the backend returns him. No hardcoded artist name lists or filtering logic should exclude him. The `useArtists` React Query hook must return all artists from the backend dynamically, and the UI must render Robert Hood's card with his name, event count (3), and a clickable avatar/name that opens the ArtistEventPopup showing his 3 upcoming events.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/pages/ArtistsPage.tsx",
-          "frontend/src/pages/DiscoverPage.tsx",
-          "frontend/src/components/ArtistEventPopup.tsx"
+          "frontend/src/lib/eventIdLookup.ts"
         ],
         "matchedFiles": []
       }
@@ -43,7 +32,12 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/ArtistEventPopup.tsx",
+    "frontend/src/pages/ArtistDetailPage.tsx",
+    "frontend/src/pages/DiscoverPage.tsx",
+    "frontend/src/utils/travelLinks.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

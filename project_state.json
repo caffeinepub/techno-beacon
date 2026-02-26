@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 55,
+  "projectStateVersion": 67,
   "summary": "Techno Beacon is a mobile app for die-hard techno fans to discover, track, and get alerts on upcoming sets from techno artists worldwide. It aggregates real-time event data from sources like Resident Advisor, Bandsintown, and artist feeds, filters out irrelevant events, and delivers personalized notifications. The focus is on authentic techno experiences and the pioneers who define the genre.",
   "architectural_notes": [
     "Aggregate real-time event data from third-party sources: Resident Advisor (RA), Bandsintown, and artist social/RSS feeds",
@@ -13,9 +13,11 @@
     "Artist event schedule overlay not showing data when clicking artist profile (Richie Hawtin test case)",
     "Artists page still showing '0 / 0 artists — No artist data found' after latest deploy; seed data for Dave Clarke, Jeff Mills, and Richie Hawtin is not loading",
     "Admin-only seed data initialization — user wants the real artist/event data they provided to be directly wired into the backend without requiring manual admin button clicks; data connection is broken",
-    "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided"
+    "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided",
+    "Multiple artists have incorrect or fabricated event dates in the backend seed data: Richie Hawtin has 6 unconfirmed placeholder events; Dave Clarke has 2 wrong dates; Jeff Mills has all Apr 2026 events shifted from correct Feb/Mar dates; Adam Beyer has Time Warp Germany on wrong date; Robert Hood has 2 events on wrong dates; Derrick May, Juan Atkins, and Kevin Saunderson each have unconfirmed events that need to be removed.",
+    "Rostock event (Thu 5 Mar 2026, Kulturzentrum) still appearing for both Richie Hawtin and Juan Atkins after attempted removal in REQ-102/AR-77 — event persists despite deploy"
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-a-discover-page-that-lists-all-upcoming-techno-events-sorted-by-date-each-event-card-must-show-artist-name-event-title-venue-city-country-date-and-time-a-source-badge-ra-bandsintown-etc-and-a-link-to-the-external-event-url-include-a-search-filter-bar-that-lets-users-filter-events-by-artist-name-city-or-date-range",
@@ -358,6 +360,46 @@
       "title": "Update the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` to include all new cities introduced by the Adam Beyer and Robert Hood event data: Mannheim (MHG or nearest — use STR for Stuttgart as fallback), Mallorca/Palma (PMI), The Hague (AMS as nearest major), Edinburgh (EDI), Medellin (MDE). Ensure the Skyscanner and Booking.com deep-link URL generators resolve these new city names correctly using the lookup table before constructing URLs.",
       "reqIds": [
         "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-frontend-update-the-static-event-id-lookup-table-in-frontend-src-lib-eventidlookup-ts-if-it-exists-to-reflect-the-corrected-and-removed-events-so-that-add-to-radar-functionality-continues-to-work-correctly-using-the-exact-backend-event-ids-for-the-updated-event-records-any-event-ids-corresponding-to-removed-or-date-corrected-events-must-be-updated-or-removed-from-the-lookup-table-to-stay-in-sync-with-the-backend-seed-data",
+      "title": "On the frontend, update the static event ID lookup table in `frontend/src/lib/eventIdLookup.ts` (if it exists) to reflect the corrected and removed events so that Add to Radar functionality continues to work correctly using the exact backend event IDs for the updated event records. Any event IDs corresponding to removed or date-corrected events must be updated or removed from the lookup table to stay in sync with the backend seed data.",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-frontend-ensure-the-discover-page-and-artists-page-display-a-clear-user-facing-error-banner-e-g-unable-to-connect-to-the-backend-please-try-again-shortly-when-a-canister-rejection-error-is-received-and-automatically-recover-and-render-data-correctly-once-the-backend-canister-is-running-again-on-the-next-react-query-retry-or-manual-page-refresh-log-the-full-error-details-to-the-browser-console",
+      "title": "On the frontend, ensure the Discover page and Artists page display a clear user-facing error banner (e.g. 'Unable to connect to the backend — please try again shortly.') when a canister rejection error is received, and automatically recover and render data correctly once the backend canister is running again on the next React Query retry or manual page refresh. Log the full error details to the browser console.",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-frontend-remove-adam-beyer-from-the-iata-city-slug-lookup-table-in-frontend-src-utils-travellinks-ts-if-any-of-his-cities-mannheim-mallorca-palma-were-added-solely-for-his-events-and-are-not-referenced-by-any-other-artist-s-events-if-those-city-entries-are-shared-with-other-artists-retain-them-also-remove-any-references-to-adam-beyer-from-the-static-event-id-lookup-table-in-frontend-src-lib-eventidlookup-ts-if-that-file-contains-entries-for-his-events",
+      "title": "On the frontend, remove Adam Beyer from the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` if any of his cities (Mannheim, Mallorca/Palma) were added solely for his events and are not referenced by any other artist's events. If those city entries are shared with other artists, retain them. Also remove any references to Adam Beyer from the static event ID lookup table in `frontend/src/lib/eventIdLookup.ts` if that file contains entries for his events.",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-frontend-update-the-static-event-id-lookup-table-in-frontend-src-lib-eventidlookup-ts-to-reflect-all-event-date-corrections-and-removals-made-in-req-94-through-req-99-specifically-1-remove-any-entry-for-the-richie-hawtin-rostock-event-and-any-of-the-6-unconfirmed-richie-hawtin-placeholder-events-s-nar-berghain-fabric-output-womb-2-update-entries-for-the-two-corrected-dave-clarke-events-brighton-concorde-2-new-datetime-2026-05-15t22-00-00z-cardiff-district-cardiff-new-datetime-2026-07-24t22-00-00z-3-update-entries-for-the-9-corrected-jeff-mills-events-to-reflect-their-corrected-feb-mar-2026-datetimes-4-remove-any-entry-for-the-kevin-saunderson-tresor-berlin-event-this-ensures-the-add-to-radar-functionality-continues-to-work-correctly-using-the-exact-backend-event-ids-for-the-updated-event-records",
+      "title": "On the frontend, update the static event ID lookup table in `frontend/src/lib/eventIdLookup.ts` to reflect all event date corrections and removals made in REQ-94 through REQ-99. Specifically: (1) remove any entry for the Richie Hawtin Rostock event and any of the 6 unconfirmed Richie Hawtin placeholder events (Sónar, Berghain, Fabric, Output, Womb); (2) update entries for the two corrected Dave Clarke events (Brighton Concorde 2 → new dateTime '2026-05-15T22:00:00Z'; Cardiff District Cardiff → new dateTime '2026-07-24T22:00:00Z'); (3) update entries for the 9 corrected Jeff Mills events to reflect their corrected Feb/Mar 2026 dateTimes; (4) remove any entry for the Kevin Saunderson Tresor Berlin event. This ensures the Add to Radar functionality continues to work correctly using the exact backend event IDs for the updated event records.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-lib-eventidlookup-ts-remove-any-entry-whose-composite-key-corresponds-to-the-richie-hawtin-or-juan-atkins-kulturzentrum-rostock-event-thu-5-mar-2026-rostock-germany-this-ensures-the-add-to-radar-functionality-does-not-reference-a-stale-event-id-that-no-longer-exists-in-the-backend",
+      "title": "In `frontend/src/lib/eventIdLookup.ts`, remove any entry whose composite key corresponds to the Richie Hawtin or Juan Atkins Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany). This ensures the Add to Radar functionality does not reference a stale event ID that no longer exists in the backend.",
+      "reqIds": [
+        "REQ-103"
       ],
       "version": 1
     }
@@ -734,6 +776,208 @@
       "summary": "On the frontend, ensure the Artists page grid and the Discover page artist roster strip automatically include Robert Hood once the backend returns him. No hardcoded artist name lists or filtering logic should exclude him. The `useArtists` React Query hook must return all artists from the backend dynamically, and the UI must render Robert Hood's card with his name, event count (3), and a clickable avatar/name that opens the ArtistEventPopup showing his 3 upcoming events.",
       "reqIds": [
         "REQ-77"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Fix incorrect/unconfirmed event dates and remove fabricated events across all artists in the backend `initializeSeedData` function: (1) Richie Hawtin — remove all 6 unconfirmed placeholder events (Rostock, Sónar Barcelona, Berghain Berlin, Fabric London, Output New York, Womb Tokyo) and retain only the confirmed real event 'Detroit Love Day 1' in Detroit; (2) Dave Clarke — correct Brighton Concorde 2 date from Sat 14 Mar to Fri 15 May 2026, correct District Cardiff date from Tue 17 Mar to Fri 24 Jul 2026; (3) Jeff Mills — correct all shifted April dates back to their real Feb/Mar 2026 dates (Chicago Feb 26, Detroit/DC Feb 27–28, SF Mar 6–7, LA Mar 8, Toronto Mar 13, NYC Mar 14, Montreal Mar 15, Johannesburg Mar 27, Cape Town Mar 28, Strasbourg Apr 2, Amsterdam 909 Jun 6, London Jul 25, Dekmantel Jul 29); (4) Adam Beyer — correct Time Warp Germany date from Mon 20 Apr to Sat 21 Mar 2026; (5) Robert Hood — correct The Crave Festival date from Mon 27 Jul to Sat 6 Jun 2026, correct Dreaming Festival date from Wed 5 Aug to Sat 27 Jun 2026; (6) Derrick May — remove unconfirmed Watergate Berlin event; (7) Juan Atkins — remove unconfirmed Arena Berlin and Unit Tokyo events; (8) Kevin Saunderson — remove unconfirmed Tresor Berlin triple bill event. All retained events must use correct ISO dateTimes. The postupgrade hook must continue to call initializeSeedData unconditionally.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove all 6 unconfirmed/fabricated event records for Richie Hawtin — specifically: Thu 5 Mar 2026 Kulturzentrum Rostock, Thu 16 Jul 2026 Sónar Festival Barcelona, Thu 10 Sep 2026 Berghain Berlin, Wed 21 Oct 2026 Fabric London, Fri 27 Nov 2026 Output New York, and Sun 7 Feb 2027 Womb Tokyo. Retain only the confirmed real event 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' at TBA venue, Detroit, USA, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'), sourceLabel 'RA', eventUrl 'https://ra.co'. All other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Dave Clarke's two wrong event dates: (1) Change the Brighton Concorde 2 event ('City Wall x Dave Clarke') dateTime from Sat 14 Mar 2026 to Fri 15 May 2026 (ISO '2026-05-15T22:00:00Z'); (2) Change the Cardiff District Cardiff event ('Luvmuzik presents Dave Clarke & Gary Beck') dateTime from Tue 17 Mar 2026 to Fri 24 Jul 2026 (ISO '2026-07-24T22:00:00Z'). All other Dave Clarke events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Jeff Mills' 9 events that were shifted to wrong April 2026 dates, replacing them with the correct real dates: (1) 'Live at Liquid Room 30th Anniversary' — smartbar, Chicago, Thu 26 Feb 2026 (ISO '2026-02-26T22:00:00Z'); (2) 'Live at Liquid Room Anniversary' — Lincoln Factory, Detroit, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'); (3) 'Detroit Love Weekend Pass' — BERHTA, Washington DC, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'); (4) 'Detroit Love Day 2' — BERHTA, Washington DC, Sat 28 Feb 2026 (ISO '2026-02-28T22:00:00Z'); (5) 'Live at Liquid Room Anniversary' — 1015 Folsom, San Francisco, Fri 6 Mar 2026 (ISO '2026-03-06T22:00:00Z'); (6) 'Metropolis Metropolis' — Palace of Fine Arts, San Francisco, Sat 7 Mar 2026 (ISO '2026-03-07T22:00:00Z'); (7) 'WORK presents' — TBA, Los Angeles, Sun 8 Mar 2026 (ISO '2026-03-08T22:00:00Z'); (8) 'Format x Apollo' — TBA, Toronto, Fri 13 Mar 2026 (ISO '2026-03-13T22:00:00Z'); (9) 'Live at Liquid Room Anniversary' — Knockdown Center, New York City, Sat 14 Mar 2026 (ISO '2026-03-14T22:00:00Z'). The remaining 7 Jeff Mills events (Montreal Mar 15, Johannesburg Mar 27, Cape Town Mar 28, Strasbourg Apr 2, Amsterdam 909 Jun 6, London Jul 25, Dekmantel Jul 29) must remain with their existing correct dates and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Adam Beyer's 'Time Warp Germany 2026' event dateTime from Mon 20 Apr 2026 to Sat 21 Mar 2026 (ISO '2026-03-21T20:00:00Z'). All other Adam Beyer events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct two Robert Hood event dates: (1) Change 'The Crave Festival 2026' (Zuiderpark, The Hague) dateTime from Mon 27 Jul 2026 to Sat 6 Jun 2026 (ISO '2026-06-06T16:00:00Z'); (2) Change 'Dreaming Festival 2026' (Parque Norte, Medellin) dateTime from Wed 5 Aug 2026 to Sat 27 Jun 2026 (ISO '2026-06-27T18:00:00Z'). All other Robert Hood events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the unconfirmed event for Derrick May: 'Tue, 22 Sep 2026 – Watergate, Berlin'. All other Derrick May events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the two unconfirmed events for Juan Atkins: (1) 'Thu, 19 Nov 2026 – Arena Berlin'; (2) 'Thu, 25 Mar 2027 – Unit, Tokyo'. All other Juan Atkins events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the unconfirmed event for Kevin Saunderson: 'Tue, 23 Jun 2026 – Tresor, Berlin (with Dave Clarke & Joey Beltram)'. All other Kevin Saunderson events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "After all event date corrections and removals in `backend/main.mo`, verify that the `postupgrade` system hook continues to call `initializeSeedData` unconditionally so that all corrected data is present on every deploy without manual admin intervention. After deploy, `getArtists` must return all 9 artists and `getEventsByArtist` must return the corrected event lists for each artist.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Audit `backend/main.mo` for any syntax errors, type mismatches, unresolved identifiers, or illegal expressions that would cause the Motoko compiler to reject the file during build. Fix all compilation errors so the backend canister builds successfully.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Ensure the `postupgrade` system hook in `backend/main.mo` does not trap or panic during canister upgrade. The hook must call `initializeSeedData` without throwing, and must not overwrite the stable `radarEvents` HashMap. If any logic in `postupgrade` is causing a trap (e.g. division by zero, out-of-bounds access, or incompatible stable variable shape), identify and fix it so the canister completes its upgrade cycle and enters the running state.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-66",
+      "summary": "Verify that after a successful deploy the canister accepts anonymous query calls to `getArtists`, `getAllEvents`, and `getEventsByArtist` without returning IC0508 or any Reject code 5 error. If the canister is in a stopped state due to a prior failed upgrade, ensure the fix in REQ-88 and REQ-89 restores it to running so these queries succeed.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-67",
+      "summary": "Remove Adam Beyer from the backend seed data in `initializeSeedData` — do not include his artist record or any of his events. All other artists and their events must remain unchanged.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-68",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove Adam Beyer's artist record and all 4 of his associated event records entirely. All other artists (Dave Clarke, Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) and their events must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so all remaining 8 artists are present on every deploy without manual intervention. After deploy, `getArtists` must return all 8 artists (excluding Adam Beyer) and `getEventsByArtist` must return the correct event lists for each remaining artist.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the fabricated event for Richie Hawtin: 'Thu, 5 Mar 2026 – Kulturzentrum Rostock' (featuring Beltram and Juan Atkins). This event does not exist on RA, Bandsintown, or any verified source. Retain only the confirmed real event 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' at TBA venue, Detroit, USA, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'). All other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Dave Clarke's Brighton Concorde 2 event ('City Wall x Dave Clarke') dateTime to Fri 15 May 2026 (ISO '2026-05-15T22:00:00Z'). The current stored date of Sat 14 Mar 2026 is incorrect. All other Dave Clarke events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Dave Clarke's Cardiff District Cardiff event ('Luvmuzik presents Dave Clarke & Gary Beck') dateTime to Fri 24 Jul 2026 (ISO '2026-07-24T22:00:00Z'). The current stored date of Tue 17 Mar 2026 is incorrect. All other Dave Clarke events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, correct Jeff Mills' 9 events that are currently stored with wrong shifted April 2026 dates. Replace them with the following correct real dates: (1) 'Live at Liquid Room 30th Anniversary' — smartbar, Chicago, Thu 26 Feb 2026 (ISO '2026-02-26T22:00:00Z'); (2) 'Live at Liquid Room Anniversary' — Lincoln Factory, Detroit, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'); (3) 'Detroit Love Weekend Pass' — BERHTA, Washington DC, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'); (4) 'Detroit Love Day 2' — BERHTA, Washington DC, Sat 28 Feb 2026 (ISO '2026-02-28T22:00:00Z'); (5) 'Live at Liquid Room Anniversary' — 1015 Folsom, San Francisco, Fri 6 Mar 2026 (ISO '2026-03-06T22:00:00Z'); (6) 'Metropolis Metropolis' — Palace of Fine Arts, San Francisco, Sat 7 Mar 2026 (ISO '2026-03-07T22:00:00Z'); (7) 'WORK presents' — TBA, Los Angeles, Sun 8 Mar 2026 (ISO '2026-03-08T22:00:00Z'); (8) 'Format x Apollo' — TBA, Toronto, Fri 13 Mar 2026 (ISO '2026-03-13T22:00:00Z'); (9) 'Live at Liquid Room Anniversary' — Knockdown Center, New York City, Sat 14 Mar 2026 (ISO '2026-03-14T22:00:00Z'). The remaining 7 Jeff Mills events (Montreal Mar 15, Johannesburg Mar 27, Cape Town Mar 28, Strasbourg Apr 2, Amsterdam 909 Jun 6, London Jul 25, Dekmantel Jul 29) must retain their existing correct dates. All other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the unconfirmed Kevin Saunderson event 'Berlin Reunification at Tresor' (Tue 23 Jun 2026, with Dave Clarke & Joey Beltram). This event does not exist on any verified source. All other Kevin Saunderson events and all other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove all unconfirmed placeholder events for Richie Hawtin beyond the already-retained 'Detroit Love Day 1' event. Specifically, if any of the following still exist in the data, remove them: Sónar Barcelona (Jul 16), Berghain Berlin (Sep 10), Fabric London (Oct 21), Output New York (Nov 27), Womb Tokyo (Feb 2027). Richie Hawtin's seeded data must contain only the single confirmed event: 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', TBA venue, Detroit, USA, Fri 27 Feb 2026 (ISO '2026-02-27T22:00:00Z'), sourceLabel 'RA', eventUrl 'https://ra.co'. All other artist event datasets must remain unchanged.",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "After all event corrections and removals in `backend/main.mo`, verify that the `postupgrade` system hook continues to call `initializeSeedData` unconditionally so that all corrected data is present on every deploy without manual admin intervention. After deploy, `getArtists` must return all 8 artists (Dave Clarke, Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) and `getEventsByArtist` must return the corrected event lists for each artist.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the non-existent/unconfirmed event for Juan Atkins: 'Thu, 5 Mar 2026 – Kulturzentrum, Rostock, Germany' (Richie Hawtin, Beltram, Juan Atkins). This event does not exist on any verified source. All other Juan Atkins events and all other artist event datasets must remain unchanged.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, remove the fabricated event 'Kulturzentrum, Rostock, Germany – Thu 5 Mar 2026' that appears under both Richie Hawtin and Juan Atkins. This event (featuring Richie Hawtin, Beltram, and Juan Atkins) does not exist on RA or any verified source. Ensure it is not present in any artist's event array — neither Richie Hawtin's, Juan Atkins', nor Joey Beltram's. All other artist event datasets must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so the corrected data is present on every deploy.",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-78",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, perform an exhaustive search and removal of every event record associated with the Kulturzentrum Rostock event on Thu 5 Mar 2026 across ALL artist arrays — including Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist. Do not rely on prior partial removals; re-audit the full hard-coded event list for every artist and confirm no event with venue 'Kulturzentrum', city 'Rostock', country 'Germany', or dateTime '2026-03-05T...' survives in any artist's event set. After removal, Richie Hawtin must have exactly one seeded event ('Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', TBA venue, Detroit, USA, '2026-02-27T22:00:00Z'). All other artist event datasets must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so the corrected data is present on every deploy.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-79",
+      "summary": "In `frontend/src/lib/eventIdLookup.ts`, perform a thorough audit and remove every entry whose composite key could correspond to the Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany) regardless of which artist it is keyed under — including Richie Hawtin, Juan Atkins, and Joey Beltram. Search by dateTime nanoseconds corresponding to '2026-03-05T...' and by any city or venue string matching 'Rostock' or 'Kulturzentrum'. Ensure no stale lookup entry references this event ID.",
+      "reqIds": [
+        "REQ-105"
       ],
       "status": "pending"
     }

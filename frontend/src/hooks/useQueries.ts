@@ -16,13 +16,13 @@ export function useGetAllEvents() {
   });
 }
 
-export function useGetEventsByArtist(artistId: string) {
+export function useGetEventsByArtist(artistId: string | null) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Event[]>({
     queryKey: ['events', 'artist', artistId],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor || !artistId) return [];
       return actor.getEventsByArtist(artistId);
     },
     enabled: !!actor && !isFetching && !!artistId,
@@ -42,13 +42,13 @@ export function useGetArtists() {
   });
 }
 
-export function useGetArtist(artistId: string) {
+export function useGetArtist(artistId: string | null) {
   const { actor, isFetching } = useActor();
 
   return useQuery<Artist | null>({
     queryKey: ['artist', artistId],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor || !artistId) return null;
       return actor.getArtist(artistId);
     },
     enabled: !!actor && !isFetching && !!artistId,

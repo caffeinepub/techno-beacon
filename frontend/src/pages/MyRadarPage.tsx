@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import {
   useGetTrackedArtists,
@@ -8,7 +8,7 @@ import {
 } from '../hooks/useQueries';
 import { Event } from '../backend';
 import LoginPrompt from '../components/LoginPrompt';
-import { Calendar, MapPin, Radio, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, Radio, AlertCircle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildTicketSearchUrl } from '../utils/ticketSearch';
 
@@ -101,7 +101,16 @@ export default function MyRadarPage() {
     data: radarEvents = [],
     isLoading: radarEventsLoading,
     isSuccess: radarEventsSuccess,
+    isError: radarEventsIsError,
+    error: radarEventsError,
+    refetch: refetchRadarEvents,
   } = useRadarEvents();
+
+  useEffect(() => {
+    if (radarEventsIsError && radarEventsError) {
+      console.error('[MyRadarPage] Failed to load radar events:', radarEventsError);
+    }
+  }, [radarEventsIsError, radarEventsError]);
 
   if (!isAuthenticated) {
     return (
@@ -141,6 +150,28 @@ export default function MyRadarPage() {
           </div>
         </div>
 
+        {/* Backend error banner */}
+        {radarEventsIsError && (
+          <div className="flex items-start gap-4 p-5 bg-destructive/10 border border-destructive/40 rounded-sm">
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-mono font-semibold text-destructive mb-1">
+                Unable to connect to the backend
+              </p>
+              <p className="text-sm text-muted-foreground mb-3">
+                Your saved events could not be loaded. The backend may be temporarily unavailable — please try again shortly.
+              </p>
+              <button
+                onClick={() => refetchRadarEvents()}
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-neon-amber hover:text-neon-amber/80 transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Saved Events Section */}
         <section>
           <div className="flex items-center gap-2 mb-4">
@@ -157,6 +188,12 @@ export default function MyRadarPage() {
               {[...Array(3)].map((_, i) => (
                 <Skeleton key={i} className="h-36 rounded" />
               ))}
+            </div>
+          ) : radarEventsIsError ? (
+            <div className="card-industrial p-6 text-center">
+              <p className="font-mono text-sm text-muted-foreground">
+                Could not load saved events — please retry above.
+              </p>
             </div>
           ) : sortedRadarEvents.length === 0 ? (
             <div className="card-industrial p-6 text-center">

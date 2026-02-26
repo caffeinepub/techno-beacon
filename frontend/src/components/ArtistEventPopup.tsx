@@ -15,7 +15,13 @@ interface ArtistEventPopupProps {
   onClose: () => void;
 }
 
-function EventRow({ event, artistName }: { event: Event; artistName: string }) {
+function EventRow({
+  event,
+  artistName,
+}: {
+  event: Event;
+  artistName: string;
+}) {
   const { identity } = useInternetIdentity();
   const { data: radarEvents } = useRadarEvents();
   const addToRadar = useAddEventToRadar();
@@ -24,9 +30,10 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
 
   const backendEventId = getBackendEventId(event.artistId, event.dateTime);
 
-  const isOnRadar = radarEvents?.some(
-    (e) => e.artistId === event.artistId && e.dateTime === event.dateTime
-  ) ?? false;
+  const isOnRadar =
+    radarEvents?.some(
+      (e) => e.artistId === event.artistId && e.dateTime === event.dateTime
+    ) ?? false;
 
   const formatDate = (dateTime: bigint) => {
     const ms = Number(dateTime) / 1_000_000;
@@ -35,6 +42,14 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+    });
+  };
+
+  const formatTime = (dateTime: bigint) => {
+    const ms = Number(dateTime) / 1_000_000;
+    return new Date(ms).toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -85,9 +100,9 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
   const isLoading = addToRadar.isPending || removeFromRadar.isPending;
 
   return (
-    <div className="card-industrial p-3 flex flex-col gap-2">
+    <div className="border border-border rounded p-3 flex flex-col gap-2 bg-background/60">
       <div className="flex items-start justify-between gap-2">
-        <h4 className="font-mono text-sm font-semibold text-foreground leading-tight flex-1 min-w-0 line-clamp-2">
+        <h4 className="font-mono text-sm font-semibold text-foreground leading-tight flex-1 min-w-0">
           {event.eventTitle}
         </h4>
         <SourceBadge source={event.sourceLabel} />
@@ -95,38 +110,40 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
 
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="w-3 h-3 shrink-0 text-accent" />
-          <span className="font-mono">{formatDate(event.dateTime)}</span>
+          <Calendar className="w-3.5 h-3.5 shrink-0 text-accent" />
+          <span className="font-mono">
+            {formatDate(event.dateTime)} · {formatTime(event.dateTime)}
+          </span>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="w-3 h-3 shrink-0 text-accent" />
+          <MapPin className="w-3.5 h-3.5 shrink-0 text-accent" />
           <span className="font-mono truncate">
             {event.venue !== 'TBA' ? `${event.venue}, ` : ''}{event.city}, {event.country}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-1 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={handleToggleRadar}
           disabled={isLoading}
-          className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-medium rounded transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium rounded transition-all ${
             isOnRadar
               ? 'bg-accent text-accent-foreground hover:bg-accent/80'
               : 'border border-border text-muted-foreground hover:border-accent hover:text-accent'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {isLoading ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Radio className="w-3 h-3" />
+            <Radio className="w-3.5 h-3.5" />
           )}
           {isOnRadar ? '📡 On Radar' : 'Add to Radar'}
         </button>
 
         <button
           onClick={() => setTripPlannerOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-medium border border-border text-muted-foreground hover:border-accent hover:text-accent rounded transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-medium border border-border text-muted-foreground hover:border-accent hover:text-accent rounded transition-all"
         >
           ✈ Plan Trip
         </button>
@@ -135,7 +152,7 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
           href={buildTicketSearchUrl('dice', artistName)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
         >
           🎟 Dice
         </a>
@@ -144,7 +161,7 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
           href={buildTicketSearchUrl('songkick', artistName)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs font-mono font-medium border border-amber/40 text-amber hover:border-amber hover:bg-amber/10 rounded transition-all"
         >
           🎟 Songkick
         </a>
@@ -162,40 +179,61 @@ function EventRow({ event, artistName }: { event: Event; artistName: string }) {
 }
 
 export default function ArtistEventPopup({ artistId, artistName, onClose }: ArtistEventPopupProps) {
-  const { data: events, isLoading } = useGetEventsByArtist(artistId);
+  const { data: events = [], isLoading } = useGetEventsByArtist(artistId);
+
+  // Defensive filter: exclude any stale Rostock / Kulturzentrum events
+  const sanitisedEvents = events.filter((event) => {
+    const cityLower = event.city.toLowerCase();
+    const venueLower = event.venue.toLowerCase();
+    if (cityLower.includes('rostock')) return false;
+    if (venueLower.includes('kulturzentrum')) return false;
+    return true;
+  });
+
+  const sortedEvents = [...sanitisedEvents].sort(
+    (a, b) => Number(a.dateTime) - Number(b.dateTime)
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-background border border-border rounded w-full max-w-lg max-h-[80vh] flex flex-col shadow-neon-amber">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-card border border-border rounded shadow-neon-amber max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <div>
             <h2 className="font-mono text-base font-bold text-foreground">{artistName}</h2>
             <p className="text-xs text-muted-foreground font-mono mt-0.5">Upcoming Events</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded"
+            className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-accent" />
+        <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-3">
+          {isLoading && (
+            <div className="flex items-center justify-center py-10 text-muted-foreground">
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <span className="font-mono text-sm">Loading events…</span>
             </div>
-          ) : !events || events.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="font-mono text-sm text-muted-foreground">No upcoming events found.</p>
-            </div>
-          ) : (
-            events.map((event, idx) => (
-              <EventRow key={`${event.artistId}-${event.dateTime}-${idx}`} event={event} artistName={artistName} />
-            ))
           )}
+
+          {!isLoading && sortedEvents.length === 0 && (
+            <p className="text-center py-10 text-muted-foreground font-mono text-sm">
+              No upcoming events found.
+            </p>
+          )}
+
+          {!isLoading &&
+            sortedEvents.map((event, idx) => (
+              <EventRow
+                key={`${event.artistId}-${event.dateTime}-${idx}`}
+                event={event}
+                artistName={artistName}
+              />
+            ))}
         </div>
       </div>
     </div>

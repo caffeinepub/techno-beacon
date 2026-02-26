@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add Robert Hood as a new seeded artist with 3 real RA events in the backend, update travel link city lookups, and ensure the frontend dynamically displays him alongside existing artists.
+**Goal:** Remove the Kulturzentrum Rostock event (Thu 5 Mar 2026) from all artist seed data and the frontend event ID lookup table.
 
 **Planned changes:**
-- Add Robert Hood artist record (ID: `robert-hood`, genre: `Detroit Techno / Minimal`) to `initializeSeedData` in `backend/main.mo`
-- Add 3 events for Robert Hood: "Dreaming Festival 2026" (Parque Norte, Medellin, 2026-06-27), "Terminal V Festival 2026" (Royal Highland Centre, Edinburgh, 2026-04-18), "The Crave Festival 2026" (Zuiderpark, The Hague, 2026-06-06), all with sourceLabel `RA`
-- Retain all existing artist and event seed data unchanged; `postupgrade` continues to call `initializeSeedData` unconditionally
-- Add Medellin (MDE), Edinburgh (EDI), and The Hague (AMS) to the IATA lookup table in `frontend/src/utils/travelLinks.ts`
-- Frontend Artists page and Discover page artist strip dynamically render Robert Hood's card (name, 3 events) via the existing `useArtists` hook with no hardcoded filtering
+- In `backend/main.mo`, audit the `initializeSeedData` function and remove every event record with venue 'Kulturzentrum', city 'Rostock', country 'Germany', or dateTime matching '2026-03-05T...' across all artist arrays (Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist)
+- Ensure Richie Hawtin retains exactly one seeded event ('Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', Detroit, USA, '2026-02-27T22:00:00Z')
+- Ensure the `postupgrade` hook continues to call `initializeSeedData` unconditionally
+- In `frontend/src/lib/eventIdLookup.ts`, remove all entries whose composite key corresponds to the Rostock event (by dateTime nanoseconds for 2026-03-05, or by venue/city strings 'Rostock' or 'Kulturzentrum') across all artists
 
-**User-visible outcome:** Robert Hood appears on the Artists page and Discover page with 3 upcoming events. Clicking his card opens the ArtistEventPopup showing all 3 events in chronological order with working travel and ticket links.
+**User-visible outcome:** The Kulturzentrum Rostock event no longer appears for any artist in the app, and all other events and radar functionality remain unaffected.

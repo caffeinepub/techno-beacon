@@ -61,7 +61,6 @@ const CITY_TO_IATA: Record<string, string> = {
   cologne: 'CGN',
   dusseldorf: 'DUS',
   stuttgart: 'STR',
-  mannheim: 'STR', // Mannheim uses Stuttgart (STR) as nearest major airport
 
   // Netherlands
   amsterdam: 'AMS',
@@ -83,9 +82,6 @@ const CITY_TO_IATA: Record<string, string> = {
   seville: 'SVQ',
   valencia: 'VLC',
   malaga: 'AGP',
-  mallorca: 'PMI',          // Mallorca island airport
-  palmademallorca: 'PMI',   // Full name variant
-  palma: 'PMI',             // Short name variant
 
   // Italy
   rome: 'FCO',
