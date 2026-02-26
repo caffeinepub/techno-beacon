@@ -1,25 +1,19 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T20:10:11.191Z",
-  "summary": "The diff modifies backend/main.mo and project_state.json. The backend file is truncated so full content of Dave Clarke's 9 events cannot be fully verified, but the structure appears present. The frontend file frontend/src/lib/eventIdLookup.ts is not included in the diff at all, meaning REQ-107 cannot be confirmed as implemented.",
+  "generatedAt": "2026-02-26T20:17:10.796Z",
+  "summary": "The diff modifies backend/main.mo and project_state.json. The backend file shows the Dave Clarke seed data structure is present, but the file is truncated so the exact 9 event records cannot be fully verified. The frontend file frontend/src/lib/eventIdLookup.ts is NOT present in the diff at all, meaning REQ-109 appears unimplemented.",
   "missing_requirements": [
     {
-      "id": "REQ-107",
-      "requirement": "In frontend/src/lib/eventIdLookup.ts, update entries for Dave Clarke's 9 events to match corrected venue strings and dateTimes (Vancouver, Toronto, Brighton, Cardiff), remove stale composite keys, so Add to Radar functionality works correctly.",
-      "reason": "The file frontend/src/lib/eventIdLookup.ts is not present in the diff at all — neither added nor modified. There is no evidence this file was updated.",
-      "evidence": []
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "The postupgrade system hook calls _forceSeedData() directly instead of initializeSeedData(), and a separate admin-gated public initializeSeedData function is introduced as a wrapper.",
-      "reason": "The build request requires postupgrade to call initializeSeedData unconditionally, but the diff shows postupgrade calling _forceSeedData() instead. This structural refactoring was not requested and deviates from the specified constraint.",
+      "id": "REQ-109",
+      "requirement": "In `frontend/src/lib/eventIdLookup.ts`, update all entries for Dave Clarke's events to match the corrected venue strings and dateTimes from REQ-108, including Vancouver, Toronto, Nancy, Paris, Brighton, Cardiff, Ostend, and Iceland entries, and remove any stale composite keys.",
+      "reason": "The file `frontend/src/lib/eventIdLookup.ts` does not appear anywhere in the diff. It was neither added nor modified, so none of the required lookup table updates for Dave Clarke's 9 events were made.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/lib/eventIdLookup.ts"
       ]
     }
   ],
+  "hallucinated_features": [],
   "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",

@@ -1,22 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Update Dave Clarke event data to match verified RA listings",
+  "title": "Replace Dave Clarke seed data with fully corrected verified event records",
   "requirements": [
     {
-      "id": "REQ-107",
-      "summary": "Update eventIdLookup.ts to reflect corrected Dave Clarke event dateTimes and venues, ensuring Add to Radar functionality works with exact backend event IDs",
+      "id": "REQ-109",
+      "summary": "Update Dave Clarke event lookup entries in frontend to match corrected backend venue strings and dateTimes",
       "acceptanceCriteria": [
-        "The eventIdLookup table contains up-to-date composite keys matching the corrected dateTimes and venues for all 9 Dave Clarke events.",
-        "No stale lookup entries remain for Dave Clarke events that have had their dateTime or venue changed.",
-        "The Add to Radar button on Dave Clarke event cards correctly resolves to valid backend event IDs after the update.",
-        "All other entries in eventIdLookup.ts are unaffected."
+        "Each of the 9 Dave Clarke events has a corresponding entry in the lookup table matching the exact backend event ID.",
+        "No stale or incorrect composite keys remain for Dave Clarke events.",
+        "Add to Radar button works correctly for all 9 Dave Clarke events after the update.",
+        "Lookup entries for all other artists are unchanged."
       ],
       "file_operations": [
         {
           "path": "frontend/src/lib/eventIdLookup.ts",
           "operation": "modify",
-          "description": "Update the eventIdLookup table entries for Dave Clarke's 9 events to match the corrected venue strings and dateTimes from REQ-106. Specifically: (1) Update the Vancouver event entry to venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'; (2) Update the Toronto event entry to venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'; (3) Update the Brighton Concorde 2 event entry to dateTime '2026-05-15T22:00:00Z'; (4) Update the Cardiff District Cardiff event entry to dateTime '2026-07-24T22:00:00Z'. Update the Nancy, Paris, London, Ostend, and Iceland event entries if their composite keys changed. Remove any stale entries for Dave Clarke events whose venue or dateTime no longer matches the backend. Verify that the composite key calculation (artistId + dateTime nanoseconds) aligns with the new backend event IDs so that getEventIdFromLookup returns the correct backend event ID for Add to Radar operations."
+          "description": "Update all Dave Clarke event lookup entries to reflect the corrected venue strings and dateTimes from the backend seed data. Specifically: (1) update or create the Vancouver event entry with venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z' in nanoseconds; (2) update or create the Toronto event entry with venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z' in nanoseconds; (3) update or create the Nancy WONDER RAVE event entry with dateTime '2026-03-13T22:00:00Z' in nanoseconds; (4) update or create the Paris OFF THE GRID event entry with dateTime '2026-03-14T22:00:00Z' in nanoseconds; (5) confirm the London fabric event entry reflects dateTime '2026-04-04T22:00:00Z' in nanoseconds; (6) confirm the Brighton Concorde 2 event entry reflects dateTime '2026-05-15T22:00:00Z' in nanoseconds; (7) confirm the Ostend Klein Strand event entry reflects dateTime '2026-07-10T18:00:00Z' in nanoseconds; (8) confirm the Cardiff District Cardiff event entry reflects dateTime '2026-07-24T22:00:00Z' in nanoseconds; (9) confirm the Iceland Hellissandur event entry reflects dateTime '2027-08-12T20:00:00Z' in nanoseconds. Remove any stale Dave Clarke lookup entries whose composite keys (artistId + dateTime nanoseconds) no longer match the corrected backend event IDs. Preserve all lookup entries for other artists (Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) unchanged. Ensure the getEventId helper function continues to work correctly with the updated lookup table so that Add to Radar functionality resolves the correct backend event IDs for all 9 Dave Clarke events."
         }
       ]
     }

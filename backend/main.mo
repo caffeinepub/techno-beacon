@@ -178,7 +178,7 @@ actor {
       },
     );
 
-    // Dave Clarke events (updated verified real RA events)
+    // Updated Dave Clarke event seed data
     for (
       (eventId, event) in [
         (
