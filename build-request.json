@@ -1,62 +1,78 @@
 {
   "kind": "build_request",
-  "title": "Remove Rostock event from Richie Hawtin and Juan Atkins seed data",
-  "priority": "high",
+  "title": "Update Dave Clarke event data to match verified RA listings",
+  "projectName": "Techno Beacon",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-104",
-      "text": "In the `initializeSeedData` function in `backend/main.mo`, perform an exhaustive search and removal of every event record associated with the Kulturzentrum Rostock event on Thu 5 Mar 2026 across ALL artist arrays — including Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist. Do not rely on prior partial removals; re-audit the full hard-coded event list for every artist and confirm no event with venue 'Kulturzentrum', city 'Rostock', country 'Germany', or dateTime '2026-03-05T...' survives in any artist's event set. After removal, Richie Hawtin must have exactly one seeded event ('Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', TBA venue, Detroit, USA, '2026-02-27T22:00:00Z'). All other artist event datasets must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so the corrected data is present on every deploy.",
+      "id": "REQ-106",
+      "text": "In the `initializeSeedData` function in `backend/main.mo`, update Dave Clarke's 9 event records to exactly match the following verified details (all retain sourceLabel 'RA' and eventUrl 'https://ra.co'):\n(1) eventTitle 'Live Techno Experience with Dave Clarke' — venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)', Vancouver, Canada, Fri 6 Mar 2026, dateTime ISO '2026-03-06T22:00:00Z';\n(2) eventTitle 'Dave Clarke in Toronto' — venue '821 Runnymede Rd (or 131 McCormack St)', Toronto, Canada, Sat 7 Mar 2026, dateTime ISO '2026-03-07T22:00:00Z';\n(3) eventTitle 'WONDER RAVE' — venue 'TBA East', Nancy, France, Fri 13 Mar 2026, dateTime ISO '2026-03-13T22:00:00Z';\n(4) eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — venue 'Mia Mao', Paris, France, Sat 14 Mar 2026, dateTime ISO '2026-03-14T22:00:00Z';\n(5) eventTitle 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — venue 'fabric', London, UK, Sat 4 Apr 2026, dateTime ISO '2026-04-04T22:00:00Z';\n(6) eventTitle 'City Wall x Dave Clarke' — venue 'Concorde 2', Brighton, UK, Fri 15 May 2026, dateTime ISO '2026-05-15T22:00:00Z';\n(7) eventTitle 'Ostend Beach Festival 2026' — venue 'Klein Strand', Ostend, Belgium, Fri 10 Jul 2026, dateTime ISO '2026-07-10T18:00:00Z';\n(8) eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck' — venue 'District Cardiff', Cardiff, UK, Fri 24 Jul 2026, dateTime ISO '2026-07-24T22:00:00Z';\n(9) eventTitle 'Iceland Eclipse' — venue 'Hellissandur', Hellissandur, Iceland, Thu 12 Aug 2027, dateTime ISO '2027-08-12T20:00:00Z'.\nAll 9 events must be associated with Dave Clarke's artist ID. All other artist event datasets (Jeff Mills 16 events, Richie Hawtin 1 event, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally. After deploy, `getEventsByArtist` queried with Dave Clarke's artist ID must return all 9 events with the correct venue strings and dateTimes.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-3",
-          "msg-5"
+          "msg-3"
         ],
         "quotes": [
-          "no its still there"
+          "Fri, 6 Mar - TBA (or Industrial 236 Warehouse / Vantek Warehouse) - Vancouver",
+          "Sat, 7 Mar - 821 Runnymede Rd (or 131 McCormack St) - Toronto",
+          "Fri, 13 Mar - TBA - East (likely Nancy, France; event: WONDER RAVE)",
+          "Sat, 14 Mar - Mia Mao - Paris (OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke)",
+          "Sat, 4 Apr - fabric - London",
+          "Fri, 15 May - Concorde 2 - Brighton (City Wall x Dave Clarke)",
+          "Fri, 10 Jul - Klein Strand - Ostend / Belgium (Ostend Beach Festival 2026; multi-day fest)",
+          "Fri, 24 Jul - District Cardiff - Cardiff (Luvmuzik presents Dave Clarke & Gary Beck)",
+          "Thu, 12 Aug 2027 - Hellissandur - Iceland (Iceland Eclipse; note: this is 2027, but included as it's listed in your data)"
         ]
       },
       "acceptanceCriteria": [
-        "No event with venue containing 'Kulturzentrum', city 'Rostock', or dateTime matching '2026-03-05' exists in any artist's event array after `initializeSeedData` runs.",
-        "Richie Hawtin's event list returned by `getEventsByArtist` contains exactly one event: 'Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer' in Detroit on 2026-02-27.",
-        "Juan Atkins' event list returned by `getEventsByArtist` contains no Rostock event.",
-        "Joey Beltram's event list returned by `getEventsByArtist` contains no Rostock event.",
-        "All other artist event counts remain unchanged after the fix.",
-        "The `postupgrade` system hook calls `initializeSeedData` unconditionally and the canister enters the running state after upgrade.",
-        "`getArtists` returns all 8 artists (Dave Clarke, Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) after deploy."
+        "Dave Clarke's Vancouver event venue reads 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' in the backend and is displayed correctly on the frontend.",
+        "Dave Clarke's Toronto event venue reads '821 Runnymede Rd (or 131 McCormack St)' in the backend.",
+        "Dave Clarke's Nancy event has eventTitle 'WONDER RAVE' and venue 'TBA East'.",
+        "Dave Clarke's Paris event has eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' and venue 'Mia Mao'.",
+        "Dave Clarke's London fabric event dateTime is '2026-04-04T22:00:00Z'.",
+        "Dave Clarke's Brighton event dateTime is '2026-05-15T22:00:00Z' and venue is 'Concorde 2'.",
+        "Dave Clarke's Ostend event dateTime is '2026-07-10T18:00:00Z' and venue is 'Klein Strand'.",
+        "Dave Clarke's Cardiff event dateTime is '2026-07-24T22:00:00Z' and venue is 'District Cardiff'.",
+        "Dave Clarke's Iceland event dateTime is '2027-08-12T20:00:00Z' and venue is 'Hellissandur'.",
+        "`getEventsByArtist` queried with Dave Clarke's artist ID returns exactly 9 events with the correct fields.",
+        "All other artists' event datasets are unaffected by this change.",
+        "The canister builds and deploys without errors; `postupgrade` calls `initializeSeedData` unconditionally."
       ]
     },
     {
-      "id": "REQ-105",
-      "text": "In `frontend/src/lib/eventIdLookup.ts`, perform a thorough audit and remove every entry whose composite key could correspond to the Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany) regardless of which artist it is keyed under — including Richie Hawtin, Juan Atkins, and Joey Beltram. Search by dateTime nanoseconds corresponding to '2026-03-05T...' and by any city or venue string matching 'Rostock' or 'Kulturzentrum'. Ensure no stale lookup entry references this event ID.",
+      "id": "REQ-107",
+      "text": "In `frontend/src/lib/eventIdLookup.ts`, update any entries for Dave Clarke's 9 events to match the corrected venue strings and dateTimes introduced in REQ-106. Specifically: (1) update the entry for the Vancouver event to reflect venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'; (2) update the entry for the Toronto event to reflect venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'; (3) update the entry for the Brighton Concorde 2 event to dateTime '2026-05-15T22:00:00Z'; (4) update the entry for the Cardiff District Cardiff event to dateTime '2026-07-24T22:00:00Z'. Any existing entries whose composite keys no longer correspond to a live backend event ID (due to venue or dateTime changes) must be removed or updated so that the Add to Radar functionality continues to work correctly using the exact backend event IDs.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3",
-          "msg-5"
+          "msg-3"
         ],
         "quotes": [
-          "no its still there"
+          "Fri, 6 Mar - TBA (or Industrial 236 Warehouse / Vantek Warehouse) - Vancouver",
+          "Sat, 7 Mar - 821 Runnymede Rd (or 131 McCormack St) - Toronto",
+          "Fri, 15 May - Concorde 2 - Brighton (City Wall x Dave Clarke)",
+          "Fri, 24 Jul - District Cardiff - Cardiff (Luvmuzik presents Dave Clarke & Gary Beck)"
         ]
       },
       "acceptanceCriteria": [
-        "No entry in `eventIdLookup.ts` has a composite key whose dateTime nanoseconds correspond to any timestamp on 2026-03-05.",
-        "No entry references a venue or city string containing 'Rostock' or 'Kulturzentrum'.",
-        "The Add to Radar functionality for all other events continues to work correctly using their existing lookup entries."
+        "The eventIdLookup table contains up-to-date composite keys matching the corrected dateTimes and venues for all 9 Dave Clarke events.",
+        "No stale lookup entries remain for Dave Clarke events that have had their dateTime or venue changed.",
+        "The Add to Radar button on Dave Clarke event cards correctly resolves to valid backend event IDs after the update.",
+        "All other entries in eventIdLookup.ts are unaffected."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any other artist's event data beyond removing the Rostock event.",
-    "Do not change the `radarEvents` stable HashMap or any user-saved radar data.",
-    "The `postupgrade` hook must remain and must call `initializeSeedData` unconditionally.",
-    "All immutable frontend paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui) must not be modified."
+    "Do not modify event data for any artist other than Dave Clarke in the backend.",
+    "The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally.",
+    "The stable `radarEvents` HashMap must not be wiped or overwritten during `initializeSeedData`.",
+    "Do not edit files listed in frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Adding new events or artists.",
-    "Changing any other event dates or data.",
-    "Modifying frontend pages beyond the eventIdLookup.ts cleanup.",
-    "Changing authentication or routing logic."
+    "Adding new artists or events beyond the Dave Clarke corrections requested.",
+    "Changing Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, or Robert Hood event data.",
+    "UI/UX redesign or theme changes.",
+    "Modifying the Skyscanner or Booking.com deep-link logic (no new cities introduced by these corrections)."
   ],
   "imageRequirements": {
     "required": [],

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 67,
+  "projectStateVersion": 69,
   "summary": "Techno Beacon is a mobile app for die-hard techno fans to discover, track, and get alerts on upcoming sets from techno artists worldwide. It aggregates real-time event data from sources like Resident Advisor, Bandsintown, and artist feeds, filters out irrelevant events, and delivers personalized notifications. The focus is on authentic techno experiences and the pioneers who define the genre.",
   "architectural_notes": [
     "Aggregate real-time event data from third-party sources: Resident Advisor (RA), Bandsintown, and artist social/RSS feeds",
@@ -14,8 +14,7 @@
     "Artists page still showing '0 / 0 artists — No artist data found' after latest deploy; seed data for Dave Clarke, Jeff Mills, and Richie Hawtin is not loading",
     "Admin-only seed data initialization — user wants the real artist/event data they provided to be directly wired into the backend without requiring manual admin button clicks; data connection is broken",
     "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided",
-    "Multiple artists have incorrect or fabricated event dates in the backend seed data: Richie Hawtin has 6 unconfirmed placeholder events; Dave Clarke has 2 wrong dates; Jeff Mills has all Apr 2026 events shifted from correct Feb/Mar dates; Adam Beyer has Time Warp Germany on wrong date; Robert Hood has 2 events on wrong dates; Derrick May, Juan Atkins, and Kevin Saunderson each have unconfirmed events that need to be removed.",
-    "Rostock event (Thu 5 Mar 2026, Kulturzentrum) still appearing for both Richie Hawtin and Juan Atkins after attempted removal in REQ-102/AR-77 — event persists despite deploy"
+    "Multiple artists have incorrect or fabricated event dates in the backend seed data: Richie Hawtin has 6 unconfirmed placeholder events; Dave Clarke has 2 wrong dates; Jeff Mills has all Apr 2026 events shifted from correct Feb/Mar dates; Adam Beyer has Time Warp Germany on wrong date; Robert Hood has 2 events on wrong dates; Derrick May, Juan Atkins, and Kevin Saunderson each have unconfirmed events that need to be removed."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -978,6 +977,28 @@
       "summary": "In `frontend/src/lib/eventIdLookup.ts`, perform a thorough audit and remove every entry whose composite key could correspond to the Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany) regardless of which artist it is keyed under — including Richie Hawtin, Juan Atkins, and Joey Beltram. Search by dateTime nanoseconds corresponding to '2026-03-05T...' and by any city or venue string matching 'Rostock' or 'Kulturzentrum'. Ensure no stale lookup entry references this event ID.",
       "reqIds": [
         "REQ-105"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-80",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, update Dave Clarke's 9 event records to match the following verified details: (1) Fri 6 Mar 2026 — venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)', Vancouver, Canada; (2) Sat 7 Mar 2026 — venue '821 Runnymede Rd (or 131 McCormack St)', Toronto, Canada; (3) Fri 13 Mar 2026 — venue 'TBA East', Nancy, France, eventTitle 'WONDER RAVE'; (4) Sat 14 Mar 2026 — venue 'Mia Mao', Paris, France, eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke'; (5) Sat 4 Apr 2026 — venue 'fabric', London, UK; (6) Fri 15 May 2026 — venue 'Concorde 2', Brighton, UK, eventTitle 'City Wall x Dave Clarke'; (7) Fri 10 Jul 2026 — venue 'Klein Strand', Ostend, Belgium, eventTitle 'Ostend Beach Festival 2026'; (8) Fri 24 Jul 2026 — venue 'District Cardiff', Cardiff, UK, eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck'; (9) Thu 12 Aug 2027 — venue 'Hellissandur', Hellissandur, Iceland, eventTitle 'Iceland Eclipse'. All events retain sourceLabel 'RA' and eventUrl 'https://ra.co'. All other artist event datasets must remain unchanged.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-81",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, update Dave Clarke's 9 event records to exactly match the following verified details (all retain sourceLabel 'RA' and eventUrl 'https://ra.co'):\n(1) eventTitle 'Live Techno Experience with Dave Clarke' — venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)', Vancouver, Canada, Fri 6 Mar 2026, dateTime ISO '2026-03-06T22:00:00Z';\n(2) eventTitle 'Dave Clarke in Toronto' — venue '821 Runnymede Rd (or 131 McCormack St)', Toronto, Canada, Sat 7 Mar 2026, dateTime ISO '2026-03-07T22:00:00Z';\n(3) eventTitle 'WONDER RAVE' — venue 'TBA East', Nancy, France, Fri 13 Mar 2026, dateTime ISO '2026-03-13T22:00:00Z';\n(4) eventTitle 'OFF THE GRID: Elli Acula, RISA TANAGUSHI, Dave Clarke' — venue 'Mia Mao', Paris, France, Sat 14 Mar 2026, dateTime ISO '2026-03-14T22:00:00Z';\n(5) eventTitle 'fabric: Palms Trax, Sedef Adasï, Alex Kassian, Dave Clarke, Setaoc Mass, Michelle Manetti, FAFF' — venue 'fabric', London, UK, Sat 4 Apr 2026, dateTime ISO '2026-04-04T22:00:00Z';\n(6) eventTitle 'City Wall x Dave Clarke' — venue 'Concorde 2', Brighton, UK, Fri 15 May 2026, dateTime ISO '2026-05-15T22:00:00Z';\n(7) eventTitle 'Ostend Beach Festival 2026' — venue 'Klein Strand', Ostend, Belgium, Fri 10 Jul 2026, dateTime ISO '2026-07-10T18:00:00Z';\n(8) eventTitle 'Luvmuzik presents Dave Clarke & Gary Beck' — venue 'District Cardiff', Cardiff, UK, Fri 24 Jul 2026, dateTime ISO '2026-07-24T22:00:00Z';\n(9) eventTitle 'Iceland Eclipse' — venue 'Hellissandur', Hellissandur, Iceland, Thu 12 Aug 2027, dateTime ISO '2027-08-12T20:00:00Z'.\nAll 9 events must be associated with Dave Clarke's artist ID. All other artist event datasets (Jeff Mills 16 events, Richie Hawtin 1 event, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) must remain unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally. After deploy, `getEventsByArtist` queried with Dave Clarke's artist ID must return all 9 events with the correct venue strings and dateTimes.",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-82",
+      "summary": "In `frontend/src/lib/eventIdLookup.ts`, update any entries for Dave Clarke's 9 events to match the corrected venue strings and dateTimes introduced in REQ-106. Specifically: (1) update the entry for the Vancouver event to reflect venue 'TBA (Industrial 236 Warehouse / Vantek Warehouse)' and dateTime '2026-03-06T22:00:00Z'; (2) update the entry for the Toronto event to reflect venue '821 Runnymede Rd (or 131 McCormack St)' and dateTime '2026-03-07T22:00:00Z'; (3) update the entry for the Brighton Concorde 2 event to dateTime '2026-05-15T22:00:00Z'; (4) update the entry for the Cardiff District Cardiff event to dateTime '2026-07-24T22:00:00Z'. Any existing entries whose composite keys no longer correspond to a live backend event ID (due to venue or dateTime changes) must be removed or updated so that the Add to Radar functionality continues to work correctly using the exact backend event IDs.",
+      "reqIds": [
+        "REQ-107"
       ],
       "status": "pending"
     }

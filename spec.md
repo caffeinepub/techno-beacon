@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the Kulturzentrum Rostock event (Thu 5 Mar 2026) from all artist seed data and the frontend event ID lookup table.
+**Goal:** Update Dave Clarke's 9 event records in the backend seed data and the frontend event ID lookup table to match verified Resident Advisor listings.
 
 **Planned changes:**
-- In `backend/main.mo`, audit the `initializeSeedData` function and remove every event record with venue 'Kulturzentrum', city 'Rostock', country 'Germany', or dateTime matching '2026-03-05T...' across all artist arrays (Richie Hawtin, Juan Atkins, Joey Beltram, and any other artist)
-- Ensure Richie Hawtin retains exactly one seeded event ('Detroit Love Day 1: Richie Hawtin - Carl Craig - Dennis Ferrer', Detroit, USA, '2026-02-27T22:00:00Z')
-- Ensure the `postupgrade` hook continues to call `initializeSeedData` unconditionally
-- In `frontend/src/lib/eventIdLookup.ts`, remove all entries whose composite key corresponds to the Rostock event (by dateTime nanoseconds for 2026-03-05, or by venue/city strings 'Rostock' or 'Kulturzentrum') across all artists
+- In `backend/main.mo`, replace all 9 Dave Clarke event entries in `initializeSeedData` with corrected eventTitles, venue strings, cities, countries, and ISO dateTimes as specified (Vancouver, Toronto, Nancy, Paris, London, Brighton, Ostend, Cardiff, Iceland)
+- All 9 events retain `sourceLabel: 'RA'` and `eventUrl: 'https://ra.co'` and remain associated with Dave Clarke's artist ID
+- All other artists' event data (Jeff Mills, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Robert Hood) remain unchanged
+- `postupgrade` continues to call `initializeSeedData` unconditionally
+- In `frontend/src/lib/eventIdLookup.ts`, update composite keys for the 4 changed Dave Clarke events (Vancouver, Toronto, Brighton, Cardiff) to reflect corrected venues and dateTimes, and remove any stale entries that no longer match a live backend event
 
-**User-visible outcome:** The Kulturzentrum Rostock event no longer appears for any artist in the app, and all other events and radar functionality remain unaffected.
+**User-visible outcome:** Dave Clarke event cards on the frontend display the correct venue names and dates, and the "Add to Radar" button correctly resolves to valid backend event IDs for all 9 Dave Clarke events.

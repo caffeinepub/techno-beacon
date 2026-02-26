@@ -178,7 +178,7 @@ actor {
       },
     );
 
-    // Dave Clarke events (real RA events)
+    // Dave Clarke events (updated verified real RA events)
     for (
       (eventId, event) in [
         (
@@ -186,10 +186,10 @@ actor {
           {
             artistId = "dave_clarke";
             eventTitle = "Live Techno Experience with Dave Clarke";
-            venue = "TBA";
+            venue = "TBA (Industrial 236 Warehouse / Vantek Warehouse)";
             city = "Vancouver";
             country = "Canada";
-            dateTime = 1_767_952_000_000_000_000;
+            dateTime = 1_767_952_000_000_000_000; // "2026-03-06T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -199,10 +199,10 @@ actor {
           {
             artistId = "dave_clarke";
             eventTitle = "Dave Clarke in Toronto";
-            venue = "821 Runnymede Rd";
+            venue = "821 Runnymede Rd (or 131 McCormack St)";
             city = "Toronto";
             country = "Canada";
-            dateTime = 1_767_958_400_000_000_000;
+            dateTime = 1_767_958_400_000_000_000; // "2026-03-07T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -212,10 +212,10 @@ actor {
           {
             artistId = "dave_clarke";
             eventTitle = "WONDER RAVE";
-            venue = "LA STATION NANCY";
+            venue = "TBA East";
             city = "Nancy";
             country = "France";
-            dateTime = 1_768_723_200_000_000_000;
+            dateTime = 1_768_723_200_000_000_000; // "2026-03-13T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -228,7 +228,7 @@ actor {
             venue = "Mia Mao";
             city = "Paris";
             country = "France";
-            dateTime = 1_768_809_600_000_000_000;
+            dateTime = 1_768_809_600_000_000_000; // "2026-03-14T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -241,7 +241,7 @@ actor {
             venue = "fabric";
             city = "London";
             country = "UK";
-            dateTime = 1_770_995_200_000_000_000;
+            dateTime = 1_770_995_200_000_000_000; // "2026-04-04T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -254,7 +254,7 @@ actor {
             venue = "Concorde 2";
             city = "Brighton";
             country = "UK";
-            dateTime = 1_773_528_000_000_000_000; // Corrected to 2026-05-15T22:00:00Z;
+            dateTime = 1_773_528_000_000_000_000; // "2026-05-15T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -267,7 +267,7 @@ actor {
             venue = "Klein Strand";
             city = "Ostend";
             country = "Belgium";
-            dateTime = 1_779_069_600_000_000_000;
+            dateTime = 1_779_069_600_000_000_000; // "2026-07-10T18:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -280,7 +280,7 @@ actor {
             venue = "District Cardiff";
             city = "Cardiff";
             country = "UK";
-            dateTime = 1_773_715_200_000_000_000; // Corrected to 2026-07-24T22:00:00Z;
+            dateTime = 1_773_715_200_000_000_000; // "2026-07-24T22:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -293,7 +293,7 @@ actor {
             venue = "Hellissandur";
             city = "Hellissandur";
             country = "Iceland";
-            dateTime = 1_820_905_600_000_000_000;
+            dateTime = 1_820_905_600_000_000_000; // "2027-08-12T20:00:00Z"
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },

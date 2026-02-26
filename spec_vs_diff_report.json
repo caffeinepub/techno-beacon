@@ -1,34 +1,28 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T19:59:34.079Z",
-  "summary": "The diff shows changes to backend/main.mo, several frontend pages, and utility files. The backend appears to implement _forceSeedData with the Rostock event removed, and frontend pages add defensive filters. However, the critical frontend file `frontend/src/lib/eventIdLookup.ts` is not present in the diff at all, meaning REQ-105 cannot be confirmed as implemented.",
+  "generatedAt": "2026-02-26T20:10:11.191Z",
+  "summary": "The diff modifies backend/main.mo and project_state.json. The backend file is truncated so full content of Dave Clarke's 9 events cannot be fully verified, but the structure appears present. The frontend file frontend/src/lib/eventIdLookup.ts is not included in the diff at all, meaning REQ-107 cannot be confirmed as implemented.",
   "missing_requirements": [
     {
-      "id": "REQ-105",
-      "requirement": "In `frontend/src/lib/eventIdLookup.ts`, perform a thorough audit and remove every entry whose composite key could correspond to the Kulturzentrum Rostock event (Thu 5 Mar 2026, Rostock, Germany) regardless of which artist it is keyed under — including Richie Hawtin, Juan Atkins, and Joey Beltram.",
-      "reason": "The file `frontend/src/lib/eventIdLookup.ts` does not appear anywhere in the diff (neither as a modified nor added file). There is no evidence that Rostock/Kulturzentrum entries were removed from the event ID lookup table.",
+      "id": "REQ-107",
+      "requirement": "In frontend/src/lib/eventIdLookup.ts, update entries for Dave Clarke's 9 events to match corrected venue strings and dateTimes (Vancouver, Toronto, Brighton, Cardiff), remove stale composite keys, so Add to Radar functionality works correctly.",
+      "reason": "The file frontend/src/lib/eventIdLookup.ts is not present in the diff at all — neither added nor modified. There is no evidence this file was updated.",
       "evidence": []
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Defensive client-side filtering of Rostock/Kulturzentrum events added to DiscoverPage and ArtistDetailPage",
-      "reason": "The build request only asked to remove the Rostock event from backend seed data (REQ-104) and from eventIdLookup.ts (REQ-105). It explicitly states non-goal: modifying frontend pages beyond the eventIdLookup.ts cleanup. Adding runtime filters in DiscoverPage.tsx and ArtistDetailPage.tsx was not requested.",
+      "description": "The postupgrade system hook calls _forceSeedData() directly instead of initializeSeedData(), and a separate admin-gated public initializeSeedData function is introduced as a wrapper.",
+      "reason": "The build request requires postupgrade to call initializeSeedData unconditionally, but the diff shows postupgrade calling _forceSeedData() instead. This structural refactoring was not requested and deviates from the specified constraint.",
       "evidence": [
-        "frontend/src/pages/DiscoverPage.tsx",
-        "frontend/src/pages/ArtistDetailPage.tsx"
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.82,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/components/ArtistEventPopup.tsx",
-    "frontend/src/pages/ArtistDetailPage.tsx",
-    "frontend/src/pages/DiscoverPage.tsx",
-    "frontend/src/utils/travelLinks.ts",
     "project_state.json"
   ]
 }
