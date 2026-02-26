@@ -1,61 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Restore ticket search buttons (Dice.fm & Songkick) on all event cards and remove ra.co links",
+  "title": "Add Robert Hood artist with 3 real RA events to seed data - Frontend",
   "requirements": [
     {
-      "id": "REQ-67",
-      "summary": "Restore Dice.fm and Songkick ticket search buttons on EventCard component and remove ra.co links",
+      "id": "REQ-76",
+      "summary": "Update IATA/city slug lookup table to include Medellin (MDE), Edinburgh (EDI), and The Hague (AMS) for Robert Hood's event cities",
       "acceptanceCriteria": [
-        "Each event card on the Discover page shows two side-by-side ticket buttons: '🎟 Dice' and '🎟 Songkick'.",
-        "The Dice.fm button links to `https://dice.fm/search?q={encodedArtistName}` and opens in a new tab.",
-        "The Songkick button links to `https://www.songkick.com/search?query={encodedArtistName}` and opens in a new tab.",
-        "No generic 'https://ra.co' or 'https://ra.ca' link appears on any event card.",
-        "Ticket buttons are styled with neon amber accent and are visually consistent with the existing Plan Trip and Add to Radar buttons."
+        "'Medellin' resolves to 'MDE' in the IATA lookup table.",
+        "'Edinburgh' resolves to 'EDI' in the IATA lookup table.",
+        "'The Hague' resolves to 'AMS' (nearest major airport) in the IATA lookup table.",
+        "Skyscanner deep-link URLs constructed for Robert Hood's events use the resolved IATA codes rather than raw city name strings.",
+        "Booking.com deep-link URLs for Robert Hood's events use the correct city name in the `ss` query parameter."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/EventCard.tsx",
+          "path": "frontend/src/utils/travelLinks.ts",
           "operation": "modify",
-          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') using buildTicketSearchUrl utility to generate search URLs based on artist name. Remove any generic ra.co or ra.ca links. Style buttons with neon amber accent (from existing theme tokens) to match Plan Trip and Add to Radar buttons. Ensure both buttons open in new tabs with target='_blank' and rel='noopener noreferrer'."
-        },
-        {
-          "path": "frontend/src/utils/ticketSearch.ts",
-          "operation": "create",
-          "description": "Create buildTicketSearchUrl utility function that takes platform ('dice' | 'songkick') and artistName as parameters, returns properly encoded search URLs: Dice.fm uses https://dice.fm/search?q={encoded}, Songkick uses https://www.songkick.com/search?query={encoded}. Use encodeURIComponent for artist name encoding."
+          "description": "Add three new city-to-IATA-code mappings to the cityToIATA lookup table: 'medellin' -> 'MDE', 'edinburgh' -> 'EDI', and 'the hague' -> 'AMS'. Ensure the normalizeCityName function correctly handles these city names and that buildSkyscannerUrl and buildBookingUrl use the lookup table to resolve IATA codes before constructing deep-link URLs."
         }
       ]
     },
     {
-      "id": "REQ-68",
-      "summary": "Restore Dice.fm and Songkick ticket search buttons in ArtistEventPopup component and remove ra.co links",
+      "id": "REQ-77",
+      "summary": "Ensure Robert Hood appears dynamically on Artists page, Discover page artist roster, and opens ArtistEventPopup with his 3 events",
       "acceptanceCriteria": [
-        "Each event row in ArtistEventPopup shows two side-by-side ticket buttons: '🎟 Dice' and '🎟 Songkick'.",
-        "The Dice.fm button links to `https://dice.fm/search?q={encodedArtistName}` and opens in a new tab.",
-        "The Songkick button links to `https://www.songkick.com/search?query={encodedArtistName}` and opens in a new tab.",
-        "No generic 'https://ra.co' or 'https://ra.ca' link appears in any event row in the popup."
+        "Robert Hood appears on the Artists page as an artist card showing his name and event count of 3.",
+        "Robert Hood's name appears in the Discover page artist roster strip.",
+        "Clicking Robert Hood's name or avatar on either page opens the ArtistEventPopup.",
+        "The ArtistEventPopup for Robert Hood displays all 3 events sorted chronologically: Terminal V (Apr 18), The Crave (Jun 6), Dreaming Festival (Jun 27).",
+        "Each event row in the popup shows event title, venue, city, date/time, Dice.fm and Songkick ticket-search buttons, and an Add to Radar toggle.",
+        "Robert Hood's events appear in the Discover page main event list sorted chronologically alongside all other seeded events."
       ],
       "file_operations": [
+        {
+          "path": "frontend/src/pages/ArtistsPage.tsx",
+          "operation": "modify",
+          "description": "Verify that the ArtistsPage component uses the useArtists hook to fetch all artists dynamically from the backend and renders them without hardcoded filtering. Confirm that when the backend returns Robert Hood, his artist card appears in the grid with his name, genre ('Detroit Techno / Minimal'), event count (3), and a clickable avatar/name that opens the ArtistEventPopup. No code changes are expected unless hardcoded artist lists or filters are present that would exclude Robert Hood."
+        },
+        {
+          "path": "frontend/src/pages/DiscoverPage.tsx",
+          "operation": "modify",
+          "description": "Verify that the DiscoverPage component uses the useArtists and useAllEvents hooks to fetch all artists and events dynamically from the backend. Confirm that Robert Hood appears in the artist roster strip and that his 3 events (Terminal V Festival 2026, The Crave Festival 2026, Dreaming Festival 2026) appear in the main event list sorted chronologically alongside all other seeded events. Ensure no hardcoded artist name lists or filtering logic exclude Robert Hood or his events."
+        },
         {
           "path": "frontend/src/components/ArtistEventPopup.tsx",
           "operation": "modify",
-          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') to each event row in the popup modal using the buildTicketSearchUrl utility from frontend/src/utils/ticketSearch.ts. Remove any generic ra.co or ra.ca links. Style buttons consistently with the dark techno theme using neon amber accent. Ensure both buttons open in new tabs with appropriate security attributes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-69",
-      "summary": "Restore Dice.fm and Songkick ticket search buttons on MyRadarPage saved events and remove ra.co links",
-      "acceptanceCriteria": [
-        "Each saved event row on My Radar shows '🎟 Dice' and '🎟 Songkick' ticket buttons.",
-        "Both buttons use `buildTicketSearchUrl` with the event's artist name and open in a new tab.",
-        "No generic 'https://ra.co' or 'https://ra.ca' link appears on the Radar page."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/MyRadarPage.tsx",
-          "operation": "modify",
-          "description": "Add two compact ticket search buttons ('🎟 Dice' and '🎟 Songkick') to each saved event row in the 'Saved Events' section using the buildTicketSearchUrl utility from frontend/src/utils/ticketSearch.ts. Remove any generic ra.co or ra.ca links from event rows. Style buttons with neon amber accent to match other ticket buttons across the app. Ensure both buttons open in new tabs."
+          "description": "Verify that the ArtistEventPopup component uses the useEventsByArtist hook to fetch events dynamically for any artist ID, including Robert Hood's. Confirm that when opened for Robert Hood, the popup displays all 3 events sorted chronologically with event title, venue, city, date/time, Dice.fm and Songkick ticket-search buttons, and an Add to Radar toggle. Ensure no hardcoded logic prevents Robert Hood's events from rendering correctly."
         }
       ]
     }

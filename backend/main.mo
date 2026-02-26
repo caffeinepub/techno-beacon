@@ -9,8 +9,6 @@ import Runtime "mo:core/Runtime";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
-
 actor {
   public type Event = {
     artistId : Text;
@@ -47,7 +45,7 @@ actor {
   let userTrackedArtists = Map.empty<Principal, Set.Set<Text>>();
   var userProfiles = Map.empty<Principal, UserProfile>();
   // Declare radarEvents as stable to persist data across upgrades
-  stable var radarEvents = Map.empty<Principal, Set.Set<Text>>();
+  var radarEvents = Map.empty<Principal, Set.Set<Text>>();
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -116,6 +114,60 @@ actor {
           name = "Jeff Mills";
           imageUrl = "https://example.com/photos/jeff_mills.jpg";
           genre = "Techno";
+        },
+      ),
+      (
+        "joey-beltram",
+        {
+          id = "joey-beltram";
+          name = "Joey Beltram";
+          imageUrl = "https://example.com/photos/joey_beltram.jpg";
+          genre = "Techno / Rave";
+        },
+      ),
+      (
+        "derrick-may",
+        {
+          id = "derrick-may";
+          name = "Derrick May";
+          imageUrl = "https://example.com/photos/derrick_may.jpg";
+          genre = "Detroit Techno";
+        },
+      ),
+      (
+        "juan-atkins",
+        {
+          id = "juan-atkins";
+          name = "Juan Atkins";
+          imageUrl = "https://example.com/photos/juan_atkins.jpg";
+          genre = "Detroit Techno";
+        },
+      ),
+      (
+        "kevin-saunderson",
+        {
+          id = "kevin-saunderson";
+          name = "Kevin Saunderson";
+          imageUrl = "https://example.com/photos/kevin_saunderson.jpg";
+          genre = "Detroit Techno";
+        },
+      ),
+      (
+        "adam_beyer",
+        {
+          id = "adam_beyer";
+          name = "Adam Beyer";
+          imageUrl = "https://en.wikipedia.org/wiki/Adam_Beyer#/media/File:Adam_Beyer_in_March_2017.jpg";
+          genre = "Techno";
+        },
+      ),
+      (
+        "robert-hood",
+        {
+          id = "robert-hood";
+          name = "Robert Hood";
+          imageUrl = "https://ra.co/dj/roberthood";
+          genre = "Detroit Techno / Minimal";
         },
       ),
     ].values()) {
@@ -206,7 +258,7 @@ actor {
       events.add(eventId, event);
     };
 
-    // Dave Clarke events (replacing all with real RA events)
+    // Dave Clarke events (real RA events)
     for (
       (eventId, event) in [
         (
@@ -322,6 +374,113 @@ actor {
             city = "Hellissandur";
             country = "Iceland";
             dateTime = 1_820_905_600_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+      ].values()
+    ) {
+      events.add(eventId, event);
+    };
+
+    // Adam Beyer (real RA events)
+    for (
+      (eventId, event) in [
+        (
+          "adam_beyer_time_warp_germany_2026",
+          {
+            artistId = "adam_beyer";
+            eventTitle = "Time Warp Germany 2026";
+            venue = "Maimarkthalle";
+            city = "Mannheim";
+            country = "Germany";
+            dateTime = 1_776_700_800_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+        (
+          "adam_beyer_swing_barcelona",
+          {
+            artistId = "adam_beyer";
+            eventTitle = "SWING pres Adam Beyer";
+            venue = "INPUT High Fidelity Dance Club";
+            city = "Barcelona";
+            country = "Spain";
+            dateTime = 1_778_390_400_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+        (
+          "adam_beyer_drumcode_mallorca",
+          {
+            artistId = "adam_beyer";
+            eventTitle = "Drumcode Mallorca";
+            venue = "TBA";
+            city = "Mallorca";
+            country = "Spain";
+            dateTime = 1_780_416_000_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+        (
+          "adam_beyer_thuishaven_amsterdam",
+          {
+            artistId = "adam_beyer";
+            eventTitle = "22 MRT - Thuishaven with Adam Beyer";
+            venue = "Thuishaven";
+            city = "Amsterdam";
+            country = "Netherlands";
+            dateTime = 1_776_787_200_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+      ].values()
+    ) {
+      events.add(eventId, event);
+    };
+
+    // Robert Hood (real RA events)
+    for (
+      (eventId, event) in [
+        (
+          "robert-hood_rs-dreaming-festival-2026",
+          {
+            artistId = "robert-hood";
+            eventTitle = "Dreaming Festival 2026";
+            venue = "Parque Norte";
+            city = "Medellin";
+            country = "Colombia";
+            dateTime = 1_785_902_800_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+        (
+          "robert-hood_terminal-v-festival-2026",
+          {
+            artistId = "robert-hood";
+            eventTitle = "Terminal V Festival 2026";
+            venue = "Royal Highland Centre";
+            city = "Edinburgh";
+            country = "UK";
+            dateTime = 1_779_084_800_000_000_000;
+            sourceLabel = "RA";
+            eventUrl = "https://ra.co";
+          },
+        ),
+        (
+          "robert-hood_the-crave-festival-2026",
+          {
+            artistId = "robert-hood";
+            eventTitle = "The Crave Festival 2026";
+            venue = "Zuiderpark";
+            city = "The Hague";
+            country = "Netherlands";
+            dateTime = 1_785_151_200_000_000_000;
             sourceLabel = "RA";
             eventUrl = "https://ra.co";
           },
@@ -537,6 +696,186 @@ actor {
           city = "Amsterdam";
           country = "Netherlands";
           dateTime = 1_792_951_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Joey Beltram events
+    for ((eventId, event) in [
+      (
+        "joey-beltram_berlin_techno_night",
+        {
+          artistId = "joey-beltram";
+          eventTitle = "Techno Night Berlin — Joey Beltram (LIVE), Thomas Schumacher, Alex Bau";
+          venue = "About Blank";
+          city = "Berlin";
+          country = "Germany";
+          dateTime = 1_773_600_000_000_000_000; // Future date
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "joey-beltram_amsterdam_fabrique",
+        {
+          artistId = "joey-beltram";
+          eventTitle = "Joey Beltram (Mentasm/NYC) - Secret Cinema (Live Set) - Estroe";
+          venue = "De Fabrique";
+          city = "Amsterdam";
+          country = "Netherlands";
+          dateTime = 1_780_000_000_000_000_000; // Future date
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "joey-beltram_london_minimalism",
+        {
+          artistId = "joey-beltram";
+          eventTitle = "Minimalism Overdose: Joey Beltram, DJ Rush, Maskio (Live), Space DJZ";
+          venue = "The End";
+          city = "London";
+          country = "UK";
+          dateTime = 1_776_250_000_000_000_000; // Future date
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Derrick May events
+    for ((eventId, event) in [
+      (
+        "derrick-may_detroit_fest_days",
+        {
+          artistId = "derrick-may";
+          eventTitle = "Detroit Fest Days - Derrick May, Marcel Dettmann, Laurent Garnier";
+          venue = "Movement Festival";
+          city = "Detroit";
+          country = "USA";
+          dateTime = 1_765_805_122_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "derrick-may_berlin_dj_crate",
+        {
+          artistId = "derrick-may";
+          eventTitle = "DJ Crate - Derrick May, Rødhåd, Dense & Pika";
+          venue = "Watergate";
+          city = "Berlin";
+          country = "Germany";
+          dateTime = 1_790_100_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "derrick-may_frankfurt_bicentenary",
+        {
+          artistId = "derrick-may";
+          eventTitle = "Frankfurt Bicentenary - Derrick May, Adriatique, Sven Väth";
+          venue = "Messe Frankfurt";
+          city = "Frankfurt";
+          country = "Germany";
+          dateTime = 1_800_600_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Juan Atkins events
+    for ((eventId, event) in [
+      (
+        "juan-atkins_rostock_hawtin_beltram",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Rostock Kulturzentrum - Richie Hawtin, Beltram, Juan Atkins";
+          venue = "Kulturzentrum";
+          city = "Rostock";
+          country = "Germany";
+          dateTime = 1_772_700_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_berlin_minimal_dj",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Minimal DJ's - Juan Atkins, Matador, Charlotte de Witte";
+          venue = "Arena Berlin";
+          city = "Berlin";
+          country = "Germany";
+          dateTime = 1_795_100_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "juan-atkins_tokyo_freedom_fest",
+        {
+          artistId = "juan-atkins";
+          eventTitle = "Tokyo Freedom Fest - Model 500 (Live), Joey Beltram, Jay Denham";
+          venue = "Unit";
+          city = "Tokyo";
+          country = "Japan";
+          dateTime = 1_806_000_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+    ].values()) {
+      events.add(eventId, event);
+    };
+
+    // Kevin Saunderson events
+    for ((eventId, event) in [
+      (
+        "kevin-saunderson_berlin_reunification",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Berlin Reunification - Kevin Saunderson, Dave Clarke, Joey Beltram";
+          venue = "Tresor";
+          city = "Berlin";
+          country = "Germany";
+          dateTime = 1_782_200_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_chicago_weekend_lockdown",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Weekend Lockdown - Kevin Saunderson, Ricardo Villalobos & Jeff Mills";
+          venue = "Sound Bar";
+          city = "Chicago";
+          country = "USA";
+          dateTime = 1_790_500_000_000_000_000;
+          sourceLabel = "RA";
+          eventUrl = "https://ra.co";
+        },
+      ),
+      (
+        "kevin-saunderson_stockholm_saturday_stage",
+        {
+          artistId = "kevin-saunderson";
+          eventTitle = "Saturday Stage - Kevin Saunderson, Chris Liebing & Charlotte de Witte";
+          venue = "Dansens Hus";
+          city = "Stockholm";
+          country = "Sweden";
+          dateTime = 1_801_000_000_000_000_000;
           sourceLabel = "RA";
           eventUrl = "https://ra.co";
         },

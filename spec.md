@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Restore Dice.fm and Songkick ticket search buttons on all event cards and remove any ra.co/ra.ca links throughout the app.
+**Goal:** Add Robert Hood as a new seeded artist with 3 real RA events in the backend, update travel link city lookups, and ensure the frontend dynamically displays him alongside existing artists.
 
 **Planned changes:**
-- In `EventCard.tsx`, add two side-by-side ticket buttons ("🎟 Dice" and "🎟 Songkick") using `buildTicketSearchUrl`, styled with neon amber accent; remove any ra.co/ra.ca links.
-- In `ArtistEventPopup.tsx`, add the same two ticket buttons to each event row; remove any ra.co/ra.ca links.
-- In `MyRadarPage.tsx`, add the same two ticket buttons to each saved event row; remove any ra.co/ra.ca links.
-- All ticket buttons open in a new tab and are visually consistent with the existing "✈ Plan Trip" and "📡 Add to Radar" buttons.
+- Add Robert Hood artist record (ID: `robert-hood`, genre: `Detroit Techno / Minimal`) to `initializeSeedData` in `backend/main.mo`
+- Add 3 events for Robert Hood: "Dreaming Festival 2026" (Parque Norte, Medellin, 2026-06-27), "Terminal V Festival 2026" (Royal Highland Centre, Edinburgh, 2026-04-18), "The Crave Festival 2026" (Zuiderpark, The Hague, 2026-06-06), all with sourceLabel `RA`
+- Retain all existing artist and event seed data unchanged; `postupgrade` continues to call `initializeSeedData` unconditionally
+- Add Medellin (MDE), Edinburgh (EDI), and The Hague (AMS) to the IATA lookup table in `frontend/src/utils/travelLinks.ts`
+- Frontend Artists page and Discover page artist strip dynamically render Robert Hood's card (name, 3 events) via the existing `useArtists` hook with no hardcoded filtering
 
-**User-visible outcome:** Every event card, popup event row, and saved radar event shows "🎟 Dice" and "🎟 Songkick" ticket search buttons with no ra.co/ra.ca links appearing anywhere.
+**User-visible outcome:** Robert Hood appears on the Artists page and Discover page with 3 upcoming events. Clicking his card opens the ArtistEventPopup showing all 3 events in chronological order with working travel and ticket links.

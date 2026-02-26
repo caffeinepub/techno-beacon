@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 49,
+  "projectStateVersion": 55,
   "summary": "Techno Beacon is a mobile app for die-hard techno fans to discover, track, and get alerts on upcoming sets from techno artists worldwide. It aggregates real-time event data from sources like Resident Advisor, Bandsintown, and artist feeds, filters out irrelevant events, and delivers personalized notifications. The focus is on authentic techno experiences and the pioneers who define the genre.",
   "architectural_notes": [
     "Aggregate real-time event data from third-party sources: Resident Advisor (RA), Bandsintown, and artist social/RSS feeds",
@@ -13,11 +13,9 @@
     "Artist event schedule overlay not showing data when clicking artist profile (Richie Hawtin test case)",
     "Artists page still showing '0 / 0 artists — No artist data found' after latest deploy; seed data for Dave Clarke, Jeff Mills, and Richie Hawtin is not loading",
     "Admin-only seed data initialization — user wants the real artist/event data they provided to be directly wired into the backend without requiring manual admin button clicks; data connection is broken",
-    "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided",
-    "Production/deployed version requires admin login and does not show artist names or event data — preview (left screen) works but deployed site (right screen) does not; regression introduced in latest deploy",
-    "Artists page regressed again in Version 16 — artists not showing after Trip Planner deploy"
+    "Artist names now visible on front page, but clicking an artist name shows 'No upcoming events found' — events are not loading in the ArtistEventPopup despite seed data being provided"
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-build-a-discover-page-that-lists-all-upcoming-techno-events-sorted-by-date-each-event-card-must-show-artist-name-event-title-venue-city-country-date-and-time-a-source-badge-ra-bandsintown-etc-and-a-link-to-the-external-event-url-include-a-search-filter-bar-that-lets-users-filter-events-by-artist-name-city-or-date-range",
@@ -354,6 +352,14 @@
         "REQ-69"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-iata-city-slug-lookup-table-in-frontend-src-utils-travellinks-ts-to-include-all-new-cities-introduced-by-the-adam-beyer-and-robert-hood-event-data-mannheim-mhg-or-nearest-use-str-for-stuttgart-as-fallback-mallorca-palma-pmi-the-hague-ams-as-nearest-major-edinburgh-edi-medellin-mde-ensure-the-skyscanner-and-booking-com-deep-link-url-generators-resolve-these-new-city-names-correctly-using-the-lookup-table-before-constructing-urls",
+      "title": "Update the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` to include all new cities introduced by the Adam Beyer and Robert Hood event data: Mannheim (MHG or nearest — use STR for Stuttgart as fallback), Mallorca/Palma (PMI), The Hague (AMS as nearest major), Edinburgh (EDI), Medellin (MDE). Ensure the Skyscanner and Booking.com deep-link URL generators resolve these new city names correctly using the lookup table before constructing URLs.",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -654,6 +660,80 @@
       "summary": "Audit and fix the `addEventToRadar(eventId: Text)` function in `backend/main.mo` to ensure the event ID passed from the frontend exactly matches the event ID keys stored in the events HashMap. Verify that: (1) event records are stored and keyed by the same ID field that is returned to the frontend via `getAllEvents` and `getEventsByArtist`; (2) `addEventToRadar` looks up the event by that exact key before storing it against the caller's principal in the stable `radarEvents` HashMap; (3) if the event ID is not found in the events map, return a descriptive error result (e.g. `#err(\"Event not found\")`) rather than silently failing; (4) the stable `radarEvents` HashMap is declared with the `stable` keyword so its contents survive canister upgrades; (5) the `postupgrade` hook does not wipe or overwrite the `radarEvents` map when re-seeding artist/event data.",
       "reqIds": [
         "REQ-65"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Add four new artists to the backend seed data in `initializeSeedData`: Joey Beltram (Energy Flash/Mentasm creator, early rave/techno architect), Derrick May (Belleville Three, 'Strings of Life', Detroit techno), Juan Atkins / Cybotron / Model 500 (Godfather/Originator of techno), and Kevin Saunderson / Inner City (Belleville Three, E-Dancer). User will provide real event data (RA listings) for each artist separately before seeding.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, add four new artist records with placeholder upcoming events (to be replaced with real RA event data when the user provides it): (1) Joey Beltram — genre 'Techno / Rave', known for Energy Flash and Mentasm, early rave/techno architect; (2) Derrick May — genre 'Detroit Techno', Belleville Three, known for 'Strings of Life'; (3) Juan Atkins — genre 'Detroit Techno', known for Cybotron / Model 500, Godfather/Originator of techno; (4) Kevin Saunderson — genre 'Detroit Techno', Belleville Three, known for Inner City / E-Dancer. Each artist must have a unique stable ID (e.g. 'joey-beltram', 'derrick-may', 'juan-atkins', 'kevin-saunderson'), a name, an imageUrl (placeholder or empty string), and their genre label. Seed each new artist with at least 3 placeholder upcoming events (realistic RA-style event titles, venues, cities, countries, ISO dateTimes set within the next 12 months, sourceLabel 'RA', eventUrl 'https://ra.co') so they appear in the artist roster and event list immediately. Retain all existing hard-coded events for Dave Clarke (9 events), Jeff Mills (16 events), and Richie Hawtin unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so all seven artists are present on every deploy without manual intervention. After the call, `getArtists` must return all seven artists and `getEventsByArtist` must return events for each.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "On the frontend, ensure the artist roster strip on the Discover page and the Artists page grid automatically display the four newly added artists (Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson) alongside the existing three, without any hardcoded artist name lists or filtering logic that would exclude them. The `useArtists` hook must return all artists from the backend and the UI must render them all dynamically.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Replace placeholder events for Joey Beltram, Derrick May, Juan Atkins, and Kevin Saunderson with real RA event data. Joey Beltram: (1) 'Phantasma: Joey Beltram, Adam X, cotton + Sissies of Mercy' — Paragon, New York City, USA, Fri 13 Mar 2026; (2) 'RESIST\\'26 WITH JOEY BELTRAM' — TBA (Location Secret), Atlanta, USA, Sat 21 Mar 2026. Derrick May: (1) 'Okeechobee Music & Arts Festival' — Sunshine Grove, Miami, USA, Thu 19 Mar 2026; (2) 'MEDETROIT 2026' — Sky Center / Central Mayorista, Colombia, Sat 16 May 2026. Juan Atkins: (1) 'Juan Atkins (US)' — Blå, Oslo, Norway, Fri 27 Feb 2026; (2) 'Traum Nacht: Juan Atkins' — TRAUM, Antwerp, Belgium, Sat 28 Feb 2026; (3) 'DETROIT LOVE: Mike Banks, Carl Craig, Moodymann, Juan Atkins' — Fvtvr, Paris, France, Sat 9 May 2026; (4) 'Nuits sonores 2026' — TBA Les Grandes Locos, Lyon, France, Wed 13 May 2026; (5) 'Dekmantel Festival 2026' — Amsterdamse Bos, Amsterdam, Netherlands, Wed 29 Jul 2026. Kevin Saunderson: (1) 'BAILE WORLD Ft Kevin Saunderson' — 9thirtyLA, Los Angeles, USA, Fri 27 Feb 2026; (2) 'Kevin Saunderson' — Club Vinyl, Denver, USA, Fri 10 Apr 2026; (3) 'Distortion | 3–7 June 2026' — TBA, Copenhagen, Denmark, Wed 3 Jun 2026; (4) '909 Festival 2026' — Amsterdamse Bos, Amsterdam, Netherlands, Sat 6 Jun 2026; (5) 'Dreaming Festival 2026' — Parque Norte, Medellin, Colombia, Sat 27 Jun 2026; (6) 'Defected Malta' — TBA Various Venues, Malta, Thu 1 Oct 2026. All events with sourceLabel 'RA' and eventUrl 'https://ra.co'. Retain all existing events for Dave Clarke, Jeff Mills, and Richie Hawtin unchanged.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Add two new artists to the backend seed data: Adam Beyer and Robert Hood. Adam Beyer events: (1) 'Time Warp Germany 2026' — Maimarkthalle, Mannheim, Germany, Sat 21 Mar 2026; (2) 'SWING pres Adam Beyer' — INPUT High Fidelity Dance Club, Barcelona, Spain, Thu 2 Apr 2026; (3) 'Drumcode Mallorca' — TBA, Mallorca, Spain, Fri 8 May 2026; (4) '22 MRT - Thuishaven with Adam Beyer' — Thuishaven, Amsterdam, Netherlands, Sun 22 Mar 2026. Robert Hood events: (1) 'Dreaming Festival 2026' — Parque Norte, Medellin, Colombia, Sat 27 Jun 2026; (2) 'Terminal V Festival 2026' — Royal Highland Centre, Edinburgh, UK, Sat 18 Apr 2026; (3) 'The Crave Festival 2026' — Zuiderpark, The Hague, Netherlands, Sat 6 Jun 2026. All events with sourceLabel 'RA' and eventUrl 'https://ra.co'. The postupgrade hook must continue to call initializeSeedData unconditionally. After deploy, getArtists must return all nine artists and getEventsByArtist must return events for each.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, replace all existing placeholder/previous event records for Adam Beyer with the following 4 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Time Warp Germany 2026' — venue 'Maimarkthalle', Mannheim, Germany, Sat 21 Mar 2026, dateTime ISO '2026-03-21T20:00:00Z'; (2) eventTitle 'SWING pres Adam Beyer' — venue 'INPUT High Fidelity Dance Club', Barcelona, Spain, Thu 2 Apr 2026, dateTime ISO '2026-04-02T22:00:00Z'; (3) eventTitle 'Drumcode Mallorca' — venue 'TBA', Mallorca, Spain, Fri 8 May 2026, dateTime ISO '2026-05-08T20:00:00Z'; (4) eventTitle '22 MRT - Thuishaven with Adam Beyer' — venue 'Thuishaven', Amsterdam, Netherlands, Sun 22 Mar 2026, dateTime ISO '2026-03-22T20:00:00Z'. All 4 events must be associated with Adam Beyer's artist ID. Retain all existing hard-coded events for Dave Clarke (9), Jeff Mills (16), Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, and Robert Hood unchanged.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, replace all existing placeholder/previous event records for Robert Hood with the following 3 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Dreaming Festival 2026' — venue 'Parque Norte', Medellin, Colombia, Sat 27 Jun 2026, dateTime ISO '2026-06-27T18:00:00Z'; (2) eventTitle 'Terminal V Festival 2026' — venue 'Royal Highland Centre', Edinburgh, UK, Sat 18 Apr 2026, dateTime ISO '2026-04-18T18:00:00Z'; (3) eventTitle 'The Crave Festival 2026' — venue 'Zuiderpark', The Hague, Netherlands, Sat 6 Jun 2026, dateTime ISO '2026-06-06T16:00:00Z'. All 3 events must be associated with Robert Hood's artist ID. Retain all existing hard-coded events for all other artists unchanged.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "In the `initializeSeedData` function in `backend/main.mo`, add Robert Hood as a new seeded artist with the following 3 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Dreaming Festival 2026' — venue 'Parque Norte', Medellin, Colombia, Sat 27 Jun 2026, dateTime ISO '2026-06-27T18:00:00Z'; (2) eventTitle 'Terminal V Festival 2026' — venue 'Royal Highland Centre', Edinburgh, UK, Sat 18 Apr 2026, dateTime ISO '2026-04-18T18:00:00Z'; (3) eventTitle 'The Crave Festival 2026' — venue 'Zuiderpark', The Hague, Netherlands, Sat 6 Jun 2026, dateTime ISO '2026-06-06T16:00:00Z'. Robert Hood must have a unique stable artist ID (e.g. 'robert-hood'), name 'Robert Hood', an imageUrl (empty string or placeholder), and genre 'Detroit Techno / Minimal'. All 3 events must be associated with Robert Hood's artist ID. Retain all existing hard-coded events for all other artists (Dave Clarke 9 events, Jeff Mills 16 events, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Adam Beyer) unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so all artists including Robert Hood are present on every deploy without manual intervention. After the call, `getArtists` must return Robert Hood and `getEventsByArtist` queried with Robert Hood's artist ID must return all 3 events.",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Update the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` to include the cities introduced by Robert Hood's new event data that are not already present: Medellin (MDE), Edinburgh (EDI), The Hague (nearest major: AMS). Ensure the Skyscanner and Booking.com deep-link URL generators resolve these city names correctly using the lookup table before constructing URLs.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "On the frontend, ensure the Artists page grid and the Discover page artist roster strip automatically include Robert Hood once the backend returns him. No hardcoded artist name lists or filtering logic should exclude him. The `useArtists` React Query hook must return all artists from the backend dynamically, and the UI must render Robert Hood's card with his name, event count (3), and a clickable avatar/name that opens the ArtistEventPopup showing his 3 upcoming events.",
+      "reqIds": [
+        "REQ-77"
       ],
       "status": "pending"
     }

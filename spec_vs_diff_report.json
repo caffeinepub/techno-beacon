@@ -1,17 +1,26 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T17:53:31.804Z",
-  "summary": "All three requirements (REQ-67, REQ-68, REQ-69) appear to be implemented. The diff shows: a new `buildTicketSearchUrl` utility added, `EventCard.tsx` updated with Dice/Songkick buttons and import of `buildTicketSearchUrl`, `ArtistEventPopup.tsx` updated with the same, and `MyRadarPage.tsx` updated with both ticket buttons. File summaries confirm no ra.co links remain. The diff is truncated but evidence is consistent across all three files.",
-  "missing_requirements": [],
+  "generatedAt": "2026-02-26T18:48:00.497Z",
+  "summary": "The diff shows modifications to backend/main.mo and project_state.json. The backend file shows the _forceSeedData function being updated with artist records. However, the diff is truncated and we cannot fully verify all three Robert Hood events. No frontend files were modified, so REQ-76 and REQ-77 appear unaddressed.",
+  "missing_requirements": [
+    {
+      "id": "REQ-76",
+      "requirement": "Update the IATA/city slug lookup table in frontend/src/utils/travelLinks.ts to include Medellin (MDE), Edinburgh (EDI), The Hague (AMS), and ensure Skyscanner and Booking.com deep-link URL generators resolve these city names correctly.",
+      "reason": "No frontend files were modified in the diff. The file frontend/src/utils/travelLinks.ts does not appear in the modified files list at all.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-77",
+      "requirement": "Ensure the Artists page grid and Discover page artist roster strip automatically include Robert Hood via dynamic useArtists hook, with his card showing name, event count of 3, and clickable avatar/name opening ArtistEventPopup with 3 events sorted chronologically.",
+      "reason": "No frontend files were modified in the diff. The modified files are only backend/main.mo and project_state.json. No changes to React components, hooks, or pages are present.",
+      "evidence": []
+    }
+  ],
   "hallucinated_features": [],
-  "confidence": 0.88,
+  "confidence": 0.72,
   "changed_files": [
-    "frontend-file-summaries.txt",
-    "frontend/src/components/ArtistEventPopup.tsx",
-    "frontend/src/components/EventCard.tsx",
-    "frontend/src/pages/MyRadarPage.tsx",
-    "frontend/src/utils/ticketSearch.ts",
+    "backend/main.mo",
     "project_state.json"
   ]
 }

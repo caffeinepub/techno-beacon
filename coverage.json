@@ -1,61 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T17:53:31.809Z",
+  "generatedAt": "2026-02-26T18:48:00.501Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-67",
-        "summary": "In `frontend/src/components/EventCard.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' linking to Dice.fm and '🎟 Songkick' linking to Songkick) built with `buildTicketSearchUrl` are present and visible on every event card. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme (neon amber accent, compact size, same visual weight as the '✈ Plan Trip' and '📡 Add to Radar' buttons).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/EventCard.tsx",
-          "frontend/src/utils/ticketSearch.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/EventCard.tsx",
-          "frontend/src/utils/ticketSearch.ts"
-        ]
+        "id": "REQ-75",
+        "summary": "In the `initializeSeedData` function in `backend/main.mo`, add Robert Hood as a new seeded artist with the following 3 real RA events (all with sourceLabel 'RA' and eventUrl 'https://ra.co'): (1) eventTitle 'Dreaming Festival 2026' — venue 'Parque Norte', Medellin, Colombia, Sat 27 Jun 2026, dateTime ISO '2026-06-27T18:00:00Z'; (2) eventTitle 'Terminal V Festival 2026' — venue 'Royal Highland Centre', Edinburgh, UK, Sat 18 Apr 2026, dateTime ISO '2026-04-18T18:00:00Z'; (3) eventTitle 'The Crave Festival 2026' — venue 'Zuiderpark', The Hague, Netherlands, Sat 6 Jun 2026, dateTime ISO '2026-06-06T16:00:00Z'. Robert Hood must have a unique stable artist ID (e.g. 'robert-hood'), name 'Robert Hood', an imageUrl (empty string or placeholder), and genre 'Detroit Techno / Minimal'. All 3 events must be associated with Robert Hood's artist ID. Retain all existing hard-coded events for all other artists (Dave Clarke 9 events, Jeff Mills 16 events, Richie Hawtin, Joey Beltram, Derrick May, Juan Atkins, Kevin Saunderson, Adam Beyer) unchanged. The `postupgrade` system hook must continue to call `initializeSeedData` unconditionally so all artists including Robert Hood are present on every deploy without manual intervention. After the call, `getArtists` must return Robert Hood and `getEventsByArtist` queried with Robert Hood's artist ID must return all 3 events.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-68",
-        "summary": "In `frontend/src/components/ArtistEventPopup.tsx`, ensure the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') built with `buildTicketSearchUrl` are present on every event row inside the popup. Remove any remaining generic 'https://ra.co' or 'https://ra.ca' link that was re-introduced. Both buttons must open in a new tab and be styled consistently with the dark techno theme.",
-        "status": "implemented",
+        "id": "REQ-76",
+        "summary": "Update the IATA/city slug lookup table in `frontend/src/utils/travelLinks.ts` to include the cities introduced by Robert Hood's new event data that are not already present: Medellin (MDE), Edinburgh (EDI), The Hague (nearest major: AMS). Ensure the Skyscanner and Booking.com deep-link URL generators resolve these city names correctly using the lookup table before constructing URLs.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/ArtistEventPopup.tsx"
+          "frontend/src/utils/travelLinks.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/components/ArtistEventPopup.tsx"
-        ]
+        "matchedFiles": []
       },
       {
-        "id": "REQ-69",
-        "summary": "In `frontend/src/pages/MyRadarPage.tsx`, ensure the 'Saved Events' section also shows the two compact ticket-search buttons ('🎟 Dice' and '🎟 Songkick') on each saved event row, using the same `buildTicketSearchUrl` utility. Remove any generic 'https://ra.co' or 'https://ra.ca' link from the Radar page event rows.",
-        "status": "implemented",
+        "id": "REQ-77",
+        "summary": "On the frontend, ensure the Artists page grid and the Discover page artist roster strip automatically include Robert Hood once the backend returns him. No hardcoded artist name lists or filtering logic should exclude him. The `useArtists` React Query hook must return all artists from the backend dynamically, and the UI must render Robert Hood's card with his name, event count (3), and a clickable avatar/name that opens the ArtistEventPopup showing his 3 upcoming events.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/pages/MyRadarPage.tsx"
+          "frontend/src/pages/ArtistsPage.tsx",
+          "frontend/src/pages/DiscoverPage.tsx",
+          "frontend/src/components/ArtistEventPopup.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/pages/MyRadarPage.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ArtistEventPopup.tsx",
-    "frontend/src/components/EventCard.tsx",
-    "frontend/src/pages/MyRadarPage.tsx",
-    "frontend/src/utils/ticketSearch.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

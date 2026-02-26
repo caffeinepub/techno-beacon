@@ -23,6 +23,9 @@ const CITY_TO_IATA: Record<string, string> = {
   sf: 'SFO',
   losangeles: 'LAX',
   la: 'LAX',
+  denver: 'DEN',
+  atlanta: 'ATL',
+  miami: 'MIA',
 
   // UK
   london: 'LON',
@@ -58,10 +61,14 @@ const CITY_TO_IATA: Record<string, string> = {
   cologne: 'CGN',
   dusseldorf: 'DUS',
   stuttgart: 'STR',
+  mannheim: 'STR', // Mannheim uses Stuttgart (STR) as nearest major airport
 
   // Netherlands
   amsterdam: 'AMS',
   rotterdam: 'RTM',
+  thehague: 'AMS',  // The Hague uses Amsterdam (AMS) as nearest major airport
+  denhag: 'AMS',    // Dutch name variant
+  denhaag: 'AMS',   // Dutch name variant
 
   // Belgium
   brussels: 'BRU',
@@ -76,6 +83,9 @@ const CITY_TO_IATA: Record<string, string> = {
   seville: 'SVQ',
   valencia: 'VLC',
   malaga: 'AGP',
+  mallorca: 'PMI',          // Mallorca island airport
+  palmademallorca: 'PMI',   // Full name variant
+  palma: 'PMI',             // Short name variant
 
   // Italy
   rome: 'FCO',
@@ -99,6 +109,12 @@ const CITY_TO_IATA: Record<string, string> = {
   melbourne: 'MEL',
   brisbane: 'BNE',
   perth: 'PER',
+
+  // Colombia
+  bogota: 'BOG',
+  medellin: 'MDE',    // José María Córdova International Airport
+  medelln: 'MDE',     // Accent-stripped variant
+  cali: 'CLO',
 
   // Other
   dubai: 'DXB',
@@ -130,7 +146,6 @@ const CITY_TO_IATA: Record<string, string> = {
   beijing: 'PEK',
   shanghai: 'PVG',
   mexicocity: 'MEX',
-  bogota: 'BOG',
   lima: 'LIM',
   santiago: 'SCL',
   buenosaires: 'EZE',
